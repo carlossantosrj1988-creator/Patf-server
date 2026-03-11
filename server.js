@@ -279,6 +279,7 @@ else if (msg.type === 'gameloss') {
   console.log('[PATF] gameloss sala:', ws.roomId, 'winner:', winner);
   broadcast(room, 'game_over', { winner: winner, reason: 'timeout' });
 }
+  });
   ws.on('close', function() {
     var roomId = ws.roomId;
     if (roomId && rooms[roomId]) {

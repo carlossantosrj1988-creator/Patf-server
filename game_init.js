@@ -158,11 +158,19 @@ function checkWin(state) {
   return null;
 }
 
+// ── Calcular dano básico ─────────────────────
+function resolveAttack(atq, poder, def) {
+  var dano = atq + poder - def;
+  if (dano < 0) dano = 0;
+  return dano;
+}
+
 module.exports = {
   buildDeck: buildDeck,
   makeChar: makeChar,
   initBattle: initBattle,
   draw: draw,
   discard: discard,
-  checkWin: checkWin
+  checkWin: checkWin,
+  resolveAttack: resolveAttack
 };

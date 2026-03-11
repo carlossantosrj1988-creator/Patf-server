@@ -205,24 +205,74 @@ wss.on('connection', function(ws) {
       var poder = sk ? (sk.power || 0) : 0;
       var atkCardNv = msg.atkCardNv || 0;
 
-      var dano = gameInit.resolveAttack(
-  (attacker.curAtq || attacker.atq) + atkCardNv,
-  poder,
-  target.curDef || target.def
-);
+      room.state.pendingAction = {
+        attackerOwner: attackerOwner,
+        defenderOwner: defenderOwner,
+        attackerId: attacker.id,
+        targetId: target.id,
+        skillId: msg.skillId,
+        skillName: sk ? sk.name : '?',
+        poder: poder,
+        atkCardNv: atkCardNv
+      };
 
-      target.hp -= dano;
-      var morreu = target.hp <= 0;
-      if (morreu) { target.hp = 0; target.alive = false; }
+      console.log('[PATF] action pendente:', attacker.name, '->', target.name);
 
-      console.log('[PATF] action:', attacker.name, '->', target.name, 'dano:', dano, 'hp:', target.hp);
+      var defenderWs = room.players.find(function(p) {
+        return p.playerIndex === (defenderOwner === 'p1' ? 0 : 1);
+      });
+      if (defenderWs) {
+        send(defenderWs, 'defense_request', {
+          atacante: attacker.id,
+          alvo: target.id,
+          skillId: msg.skillId,
+          skillName: sk ? sk.name : '?',
+          poder: poder,
+          atkCardNv: atkCardNv,
+          attackerOwner: attackerOwner
+        });
+      }
+    }
+
+      else if (msg.type === 'defense_response') {
+      var room = rooms[ws.roomId];
+      if (!room || !room.state || !room.state.pendingAction) return;
+
+      var pending = room.state.pendingAction;
+      room.state.pendingAction = null;
+
+      var attacker2 = room.state[pending.attackerOwner].chars.find(function(c) { return c.id === pending.attackerId; });
+      var target2 = room.state[pending.defenderOwner].chars.find(function(c) { return c.id === pending.targetId; });
+
+      if (!attacker2 || !target2) return;
+
+      var defCardNv = msg.defCardNv || 0;
+      var isJack = msg.isJack || false;
+      var dano = 0;
+      var morreu = false;
+
+      if (isJack) {
+        console.log('[PATF] Esquiva! ' + target2.name + ' esquivou!');
+      } else {
+        dano = gameInit.resolveAttack(
+          (attacker2.curAtq || attacker2.atq) + pending.atkCardNv,
+          pending.poder,
+          (target2.curDef || target2.def) + defCardNv
+        );
+        target2.hp -= dano;
+        morreu = target2.hp <= 0;
+        if (morreu) { target2.hp = 0; target2.alive = false; }
+      }
+
+      console.log('[PATF] defesa resolvida:', attacker2.name, '->', target2.name, 'dano:', dano, 'hp:', target2.hp);
 
       broadcast(room, 'action_result', {
-        atacante: attacker.id,
-        alvo: target.id,
+        atacante: attacker2.id,
+        alvo: target2.id,
         dano: dano,
-        hpAlvo: target.hp,
-        morreu: morreu
+        hpAlvo: target2.hp,
+        morreu: morreu,
+        isJack: isJack
       });
 
       var order = room.state.order;
@@ -231,11 +281,10 @@ wss.on('connection', function(ws) {
       room.state.orderIdx = idx;
       var next = order[idx];
       if (next) {
-        console.log('[PATF] next_turn apos action:', next.charId, next.owner);
         broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
       }
-    }
-
+      }
+        
     else if (msg.type === 'skip_turn') {
       var room = rooms[ws.roomId];
       if (!room || !room.state || !room.state.order) return;

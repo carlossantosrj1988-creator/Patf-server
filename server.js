@@ -219,6 +219,7 @@ wss.on('connection', function(ws) {
       return Math.random() - 0.5;
     });
 
+    if (!room.state) room.state = {};
     // Guarda ordem no estado
     room.state.order = all;
     room.state.orderIdx = 0;

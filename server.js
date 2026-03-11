@@ -233,6 +233,30 @@ wss.on('connection', function(ws) {
     });
   }
 }
+    else if (msg.type === 'request_next_turn') {
+  var room = rooms[ws.roomId];
+  if (!room || !room.state) return;
+
+  var order = room.state.order;
+  var idx = room.state.orderIdx || 0;
+
+  // Pula mortos
+  while (idx < order.length && !order[idx]) idx++;
+  if (idx >= order.length) {
+    // Rodada acabou — avança turno
+    room.state.orderIdx = 0;
+    idx = 0;
+  }
+
+  room.state.orderIdx = idx;
+  var current = order[idx];
+
+  console.log('[PATF] next_turn:', current.charId, current.owner);
+  broadcast(room, 'next_turn', {
+    charId: current.charId,
+    owner: current.owner
+  });
+    }
   });
 
   ws.on('close', function() {

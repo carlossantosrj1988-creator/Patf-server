@@ -184,7 +184,7 @@ wss.on('connection', function(ws) {
 }
     else if (msg.type === 'submit_initiative') {
   var room = rooms[ws.roomId];
-  if (!room || !room.state) return;
+  if (!room) return;
 
   // Guarda a escolha de iniciativa do jogador
   var pl = ws.playerIndex === 0 ? 'p1' : 'p2';

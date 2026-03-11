@@ -182,6 +182,56 @@ wss.on('connection', function(ws) {
     })
   });
 }
+    else if (msg.type === 'submit_initiative') {
+  var room = rooms[ws.roomId];
+  if (!room || !room.state) return;
+
+  // Guarda a escolha de iniciativa do jogador
+  var pl = ws.playerIndex === 0 ? 'p1' : 'p2';
+  if (!room.initiatives) room.initiatives = {};
+  room.initiatives[pl] = msg.choices; // [{charId, cardNv, cardSuit, inc}]
+
+  console.log('[PATF] Iniciativa recebida de', pl, 'sala:', ws.roomId);
+
+  // Avisa que está esperando
+  send(ws, 'initiative_waiting', {});
+
+  // Quando os dois mandaram — calcula a ordem
+  if (room.initiatives.p1 && room.initiatives.p2) {
+    var all = [];
+
+    ['p1', 'p2'].forEach(function(o) {
+      room.initiatives[o].forEach(function(choice) {
+        all.push({
+          charId: choice.charId,
+          owner: o,
+          cardNv: choice.cardNv,
+          cardSuit: choice.cardSuit,
+          tot: choice.cardNv + choice.inc
+        });
+      });
+    });
+
+    // Ordena — maior total age primeiro
+    all.sort(function(a, b) {
+      if (b.tot !== a.tot) return b.tot - a.tot;
+      if (b.cardNv !== a.cardNv) return b.cardNv - a.cardNv;
+      return Math.random() - 0.5;
+    });
+
+    // Guarda ordem no estado
+    room.state.order = all;
+    room.state.orderIdx = 0;
+    room.initiatives = {};
+
+    console.log('[PATF] Ordem definida:', all.map(function(a){ return a.charId; }).join(' → '));
+
+    // Manda resultado pros dois
+    broadcast(room, 'initiative_result', {
+      order: all
+    });
+  }
+}
   });
 
   ws.on('close', function() {

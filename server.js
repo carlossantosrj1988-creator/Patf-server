@@ -101,55 +101,51 @@ wss.on('connection', function(ws) {
       send(ws, 'pong', { timestamp: Date.now() });
     }
 
-    else if (msg.type === 'action') {
+else if (msg.type === 'action') {
   var room = rooms[ws.roomId];
   if (!room || !room.state) return;
 
-  var state = room.state;
-  var atacanteId = msg.atacante;
-  var skillId = msg.skill;
-  var alvoId = msg.alvo;
-  var dono = ws.playerIndex === 0 ? 'p1' : 'p2';
-  var inimigo = dono === 'p1' ? 'p2' : 'p1';
+  var attackerOwner = ws.playerIndex === 0 ? 'p1' : 'p2';
+  var defenderOwner = attackerOwner === 'p1' ? 'p2' : 'p1';
 
-  // Busca o atacante
-  var atacante = state[dono].chars.find(function(c) {
-    return c.id === atacanteId && c.alive;
-  });
+  var attackerChars = room.state[attackerOwner].chars;
+  var defenderChars = room.state[defenderOwner].chars;
 
-  // Busca a skill
-  var skill = atacante ? atacante.skills.find(function(s) {
-    return s.id === skillId;
-  }) : null;
+  var attacker = attackerChars.find(function(c) { return c.id === msg.charId; });
+  var target   = defenderChars.find(function(c) { return c.id === msg.targetId; });
 
-  // Busca o alvo
-  var alvo = state[inimigo].chars.find(function(c) {
-    return c.id === alvoId && c.alive;
-  });
+  if (!attacker || !target) return;
 
-  if (!atacante || !skill || !alvo) {
-    return send(ws, 'error', { message: 'Acao invalida' });
-  }
+  // Busca skill
+  var sk = attacker.skills ? attacker.skills.find(function(s) { return s.id === msg.skillId; }) : null;
+  var poder = sk ? (sk.poder || 0) : 0;
 
-  // Calcula o dano
-  var dano = gameInit.resolveAttack(atacante.atq, skill.power, alvo.def);
+  // Calcula dano básico
+  var dano = gameInit.resolveAttack(attacker.curAtq || attacker.atq, poder, msg.atkCardNv || 0, target.curDef || target.def);
+  target.hp -= dano;
+  var morreu = target.hp <= 0;
+  if (morreu) { target.hp = 0; target.alive = false; }
 
-  // Desconta HP do alvo
-  alvo.hp -= dano;
-  if (alvo.hp <= 0) {
-    alvo.hp = 0;
-    alvo.alive = false;
-  }
+  console.log('[PATF] action:', attacker.name, '->', target.name, 'dano:', dano);
 
-  // Avisa os dois jogadores
+  // Manda resultado pros dois
   broadcast(room, 'action_result', {
-    atacante: atacanteId,
-    skill: skillId,
-    alvo: alvoId,
+    atacante: attacker.id,
+    alvo: target.id,
     dano: dano,
-    hpAlvo: alvo.hp,
-    morreu: !alvo.alive
+    hpAlvo: target.hp,
+    morreu: morreu
   });
+
+  // Avança pro próximo turno
+  var order = room.state.order;
+  var idx = (room.state.orderIdx || 0) + 1;
+  if (idx >= order.length) idx = 0;
+  room.state.orderIdx = idx;
+  var next = order[idx];
+  if (next) {
+    broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
+  }
 }
     else if (msg.type === 'start_battle') {
   var room = rooms[ws.roomId];

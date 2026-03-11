@@ -110,6 +110,37 @@ wss.on('connection', function(ws) {
         timestamp: Date.now()
       });
     }
+    else if (msg.type === 'start_battle') {
+  var room = rooms[ws.roomId];
+  if (!room) return;
+
+  // Só o host (playerIndex 0) inicia a batalha
+  if (ws.playerIndex !== 0) return;
+
+  var p1Ids = msg.p1Ids;
+  var p2Ids = msg.p2Ids;
+
+  // Juiz monta o estado completo da batalha
+  var state = gameInit.initBattle(p1Ids, p2Ids);
+
+  if (state.error) {
+    return send(ws, 'error', { message: state.error });
+  }
+
+  // Guarda o estado na sala
+  room.state = state;
+
+  // Avisa os dois jogadores
+  broadcast(room, 'battle_started', {
+    message: 'Batalha iniciada!',
+    p1Chars: state.p1.chars.map(function(c) {
+      return { id: c.id, name: c.name, hp: c.hp, maxHp: c.maxHp };
+    }),
+    p2Chars: state.p2.chars.map(function(c) {
+      return { id: c.id, name: c.name, hp: c.hp, maxHp: c.maxHp };
+    })
+  });
+}
   });
 
   ws.on('close', function() {

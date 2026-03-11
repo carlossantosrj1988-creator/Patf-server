@@ -102,14 +102,55 @@ wss.on('connection', function(ws) {
     }
 
     else if (msg.type === 'action') {
-      var room = rooms[ws.roomId];
-      if (!room) return;
-      broadcast(room, 'action_result', {
-        playerIndex: ws.playerIndex,
-        action: msg.action,
-        timestamp: Date.now()
-      });
-    }
+  var room = rooms[ws.roomId];
+  if (!room || !room.state) return;
+
+  var state = room.state;
+  var atacanteId = msg.atacante;
+  var skillId = msg.skill;
+  var alvoId = msg.alvo;
+  var dono = ws.playerIndex === 0 ? 'p1' : 'p2';
+  var inimigo = dono === 'p1' ? 'p2' : 'p1';
+
+  // Busca o atacante
+  var atacante = state[dono].chars.find(function(c) {
+    return c.id === atacanteId && c.alive;
+  });
+
+  // Busca a skill
+  var skill = atacante ? atacante.skills.find(function(s) {
+    return s.id === skillId;
+  }) : null;
+
+  // Busca o alvo
+  var alvo = state[inimigo].chars.find(function(c) {
+    return c.id === alvoId && c.alive;
+  });
+
+  if (!atacante || !skill || !alvo) {
+    return send(ws, 'error', { message: 'Acao invalida' });
+  }
+
+  // Calcula o dano
+  var dano = gameInit.resolveAttack(atacante.atq, skill.power, alvo.def);
+
+  // Desconta HP do alvo
+  alvo.hp -= dano;
+  if (alvo.hp <= 0) {
+    alvo.hp = 0;
+    alvo.alive = false;
+  }
+
+  // Avisa os dois jogadores
+  broadcast(room, 'action_result', {
+    atacante: atacanteId,
+    skill: skillId,
+    alvo: alvoId,
+    dano: dano,
+    hpAlvo: alvo.hp,
+    morreu: !alvo.alive
+  });
+}
     else if (msg.type === 'start_battle') {
   var room = rooms[ws.roomId];
   if (!room) return;

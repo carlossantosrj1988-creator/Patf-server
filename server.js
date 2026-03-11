@@ -259,6 +259,26 @@ wss.on('connection', function(ws) {
     }
   });
 
+  else if (msg.type === 'skip_turn') {
+  var room = rooms[ws.roomId];
+  if (!room) return;
+  console.log('[PATF] skip_turn sala:', ws.roomId, 'skipCount:', msg.skipCount);
+  // Avança pro próximo da ordem
+  if (room.state && room.state.order) {
+    room.state.orderIdx = (room.state.orderIdx || 0) + 1;
+    if (room.state.orderIdx >= room.state.order.length) room.state.orderIdx = 0;
+    var next = room.state.order[room.state.orderIdx];
+    broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
+  }
+}
+
+else if (msg.type === 'gameloss') {
+  var room = rooms[ws.roomId];
+  if (!room) return;
+  var winner = ws.playerIndex === 0 ? 'p2' : 'p1';
+  console.log('[PATF] gameloss sala:', ws.roomId, 'winner:', winner);
+  broadcast(room, 'game_over', { winner: winner, reason: 'timeout' });
+}
   ws.on('close', function() {
     var roomId = ws.roomId;
     if (roomId && rooms[roomId]) {

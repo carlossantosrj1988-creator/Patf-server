@@ -202,15 +202,14 @@ wss.on('connection', function(ws) {
       }
 
       var sk = attacker.skills ? attacker.skills.find(function(s) { return s.id === msg.skillId; }) : null;
-      var poder = sk ? (sk.poder || 0) : 0;
+      var poder = sk ? (sk.power || 0) : 0;
       var atkCardNv = msg.atkCardNv || 0;
 
       var dano = gameInit.resolveAttack(
-        attacker.curAtq || attacker.atq,
-        poder,
-        atkCardNv,
-        target.curDef || target.def
-      );
+  (attacker.curAtq || attacker.atq) + atkCardNv,
+  poder,
+  target.curDef || target.def
+);
 
       target.hp -= dano;
       var morreu = target.hp <= 0;

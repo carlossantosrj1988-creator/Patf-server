@@ -257,7 +257,6 @@ wss.on('connection', function(ws) {
     owner: current.owner
   });
     }
-  });
 
   else if (msg.type === 'skip_turn') {
   var room = rooms[ws.roomId];

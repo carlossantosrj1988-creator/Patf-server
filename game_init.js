@@ -218,6 +218,100 @@ function applyDoTs(char) {
 
   return effects;
 }
+// ── Adicionar status (com stack) ────────────
+function addStatus(ch, st) {
+  var existing = ch.statuses.find(function(s) { return s.id === st.id; });
+  if (existing) {
+    existing.turns = st.turns;
+    if (st.stacks && st.stackMax) {
+      existing.stacks = Math.min((existing.stacks || 1) + 1, st.stackMax);
+    }
+  } else {
+    ch.statuses.push({
+      id: st.id,
+      icon: st.icon,
+      label: st.label,
+      turns: st.turns,
+      stacks: st.stacks || 0,
+      stackMax: st.stackMax || 0
+    });
+  }
+}
+
+// ── Aplicar status de skill no alvo ─────────
+function applySkillEffects(skill, target) {
+  var d = skill.desc.toLowerCase();
+  var applied = [];
+
+  if (d.includes('queimadura')) {
+    addStatus(target, {id:'burn', icon:'🔥', label:'Queimadura', turns:2});
+    applied.push('burn');
+  }
+
+  if (d.includes('sangramento')) {
+    addStatus(target, {id:'bleed', icon:'🩸', label:'Sangramento', turns:2, stacks:1, stackMax:3});
+    applied.push('bleed');
+  }
+
+  if (d.includes('radia')) {
+    addStatus(target, {id:'rad', icon:'☢️', label:'Radiação', turns:2, stacks:1, stackMax:4});
+    applied.push('rad');
+  }
+
+  if (d.includes('estatica') || d.includes('estática')) {
+    addStatus(target, {id:'static', icon:'⚡', label:'Estática', turns:2});
+    applied.push('static');
+  }
+
+  if (d.includes('resfriamento')) {
+    addStatus(target, {id:'chill', icon:'🧊', label:'Resfriamento', turns:2});
+    applied.push('chill');
+  }
+
+  if (d.includes('congela')) {
+    addStatus(target, {id:'frozen', icon:'❄️', label:'Congelado', turns:2});
+    applied.push('frozen');
+  }
+
+  if (d.includes('atordoa')) {
+    addStatus(target, {id:'stun', icon:'💫', label:'Atordoado', turns:2});
+    applied.push('stun');
+  }
+
+  if (d.includes('exposto')) {
+    target.curDef = Math.floor(target.def / 2);
+    addStatus(target, {id:'exposed', icon:'⬇️', label:'Exposto', turns:2});
+    applied.push('exposed');
+  }
+
+  if (d.includes('enfraquecido')) {
+    target.curAtq = Math.floor(target.atq / 2);
+    addStatus(target, {id:'weak', icon:'💢', label:'Enfraquecido', turns:2});
+    applied.push('weak');
+  }
+
+  if (d.includes('amaciado')) {
+    addStatus(target, {id:'amaciado', icon:'🥩', label:'Amaciado', turns:2});
+    applied.push('amaciado');
+  }
+
+  if (d.includes('derreter')) {
+    addStatus(target, {id:'melt', icon:'🧪', label:'Armadura Derretida', turns:1});
+    applied.push('melt');
+  }
+
+  if (d.includes('lento')) {
+    addStatus(target, {id:'slow', icon:'🐢', label:'Lento', turns:2});
+    applied.push('slow');
+  }
+
+  if (d.includes('encantado')) {
+    addStatus(target, {id:'encantado', icon:'🎭', label:'Encantado', turns:1});
+    applied.push('encantado');
+  }
+
+  return applied;
+                       }
 
 module.exports = {
   buildDeck: buildDeck,
@@ -227,5 +321,6 @@ module.exports = {
   discard: discard,
   checkWin: checkWin,
   resolveAttack: resolveAttack,
-  applyDoTs: applyDoTs
+  applyDoTs: applyDoTs,
+   applySkillEffects: applySkillEffects
 };

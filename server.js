@@ -320,6 +320,12 @@ wss.on('connection', function(ws) {
           alvo.hp = 0;
           alvo.alive = false;
         }
+        // Aplica status da skill no alvo
+        var skill = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
+        var statusApplied = [];
+        if (skill) {
+          statusApplied = gameInit.applySkillEffects(skill, alvo);
+        }
 
         broadcast(room, 'action_result', {
           atacante: pa.atacanteId,
@@ -327,7 +333,8 @@ wss.on('connection', function(ws) {
           alvo: pa.alvoId,
           dano: dano,
           hpAlvo: alvo.hp,
-          morreu: !alvo.alive
+          morreu: !alvo.alive,
+          statusApplied: statusApplied
         });
 
         // Verifica vitória

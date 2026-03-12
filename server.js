@@ -180,9 +180,9 @@ wss.on('connection', function(ws) {
       if (!room || !room.state) return;
 
       var state = room.state;
-      var atacanteId = msg.atacante;
-      var skillId = msg.skill;
-      var alvoId = msg.alvo;
+      var atacanteId = msg.charId;
+      var skillId = msg.skillId;
+      var alvoId = msg.targetId;
       var atkCardNv = msg.atkCardNv || 0;
       var atkCardSuit = msg.atkCardSuit || 'neutral';
       var dono = ws.playerIndex === 0 ? 'p1' : 'p2';

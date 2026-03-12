@@ -257,6 +257,11 @@ wss.on('connection', function(ws) {
           morreu: false,
           esquivou: true
         });
+        // Avança turno após esquiva
+        state.orderIdx = (state.orderIdx || 0) + 1;
+        if (state.orderIdx >= state.order.length) state.orderIdx = 0;
+        var next = state.order[state.orderIdx];
+        broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
       } else {
         // Calcula dano com defesa
         var defTotal = alvo.def + defCardNv;
@@ -283,6 +288,11 @@ wss.on('connection', function(ws) {
           broadcast(room, 'game_over', { winner: winner, reason: 'battle' });
           return;
         }
+      // Avança turno após o dano
+        state.orderIdx = (state.orderIdx || 0) + 1;
+        if (state.orderIdx >= state.order.length) state.orderIdx = 0;
+        var next = state.order[state.orderIdx];
+        broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
       }
     }
 

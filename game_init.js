@@ -73,7 +73,6 @@ function makeChar(data, owner) {
 
 // ── Inicializar estado de batalha ───────────
 function initBattle(p1Ids, p2Ids) {
-  // Busca dados dos personagens
   var p1Chars = p1Ids.map(function(id) {
     var data = gameData.getCharById(id);
     return data ? makeChar(data, 'p1') : null;
@@ -158,11 +157,10 @@ function checkWin(state) {
   return null;
 }
 
-// ── Calcular dano básico ─────────────────────
+// ── Resolver ataque ─────────────────────────
 function resolveAttack(atq, poder, def) {
   var dano = atq + poder - def;
-  if (dano < 0) dano = 0;
-  return dano;
+  return dano < 0 ? 0 : dano;
 }
 
 module.exports = {

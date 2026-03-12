@@ -104,13 +104,19 @@ wss.on('connection', function(ws) {
     else if (msg.type === 'start_battle') {
       var room = rooms[ws.roomId];
       if (!room) return;
+
       if (ws.playerIndex !== 0) return;
 
-      var state = gameInit.initBattle(msg.p1Ids, msg.p2Ids);
-      if (state.error) return send(ws, 'error', { message: state.error });
+      var p1Ids = msg.p1Ids;
+      var p2Ids = msg.p2Ids;
+
+      var state = gameInit.initBattle(p1Ids, p2Ids);
+
+      if (state.error) {
+        return send(ws, 'error', { message: state.error });
+      }
 
       room.state = state;
-      console.log('[PATF] Batalha iniciada sala:', ws.roomId);
 
       broadcast(room, 'battle_started', {
         message: 'Batalha iniciada!',
@@ -132,10 +138,12 @@ wss.on('connection', function(ws) {
       room.initiatives[pl] = msg.choices;
 
       console.log('[PATF] Iniciativa recebida de', pl, 'sala:', ws.roomId);
+
       send(ws, 'initiative_waiting', {});
 
       if (room.initiatives.p1 && room.initiatives.p2) {
         var all = [];
+
         ['p1', 'p2'].forEach(function(o) {
           room.initiatives[o].forEach(function(choice) {
             all.push({
@@ -159,141 +167,158 @@ wss.on('connection', function(ws) {
         room.state.orderIdx = 0;
         room.initiatives = {};
 
-        console.log('[PATF] Ordem definida:', all.map(function(a) { return a.charId; }).join(' > '));
-        broadcast(room, 'initiative_result', { order: all });
+        console.log('[PATF] Ordem definida:', all.map(function(a){ return a.charId; }).join(' → '));
+
+        broadcast(room, 'initiative_result', {
+          order: all
+        });
       }
-    }
-
-    else if (msg.type === 'request_next_turn') {
-      var room = rooms[ws.roomId];
-      if (!room || !room.state) return;
-      if (ws.playerIndex !== 0) return;
-
-      var order = room.state.order;
-      var idx = room.state.orderIdx || 0;
-
-      while (idx < order.length && !order[idx]) idx++;
-      if (idx >= order.length) { room.state.orderIdx = 0; idx = 0; }
-
-      room.state.orderIdx = idx;
-      var current = order[idx];
-
-      console.log('[PATF] next_turn:', current.charId, current.owner);
-      broadcast(room, 'next_turn', { charId: current.charId, owner: current.owner });
     }
 
     else if (msg.type === 'action') {
       var room = rooms[ws.roomId];
       if (!room || !room.state) return;
 
-      var attackerOwner = ws.playerIndex === 0 ? 'p1' : 'p2';
-      var defenderOwner = attackerOwner === 'p1' ? 'p2' : 'p1';
+      var state = room.state;
+      var atacanteId = msg.atacante;
+      var skillId = msg.skill;
+      var alvoId = msg.alvo;
+      var atkCardNv = msg.atkCardNv || 0;
+      var atkCardSuit = msg.atkCardSuit || 'neutral';
+      var dono = ws.playerIndex === 0 ? 'p1' : 'p2';
+      var inimigo = dono === 'p1' ? 'p2' : 'p1';
 
-      var attacker = room.state[attackerOwner].chars.find(function(c) {
-        return c.id === msg.charId && c.alive;
-      });
-      var target = room.state[defenderOwner].chars.find(function(c) {
-        return c.id === msg.targetId && c.alive;
+      var atacante = state[dono].chars.find(function(c) {
+        return c.id === atacanteId && c.alive;
       });
 
-      if (!attacker || !target) {
-        console.log('[PATF] action invalida — atacante ou alvo nao encontrado');
-        return;
+      var skill = atacante ? atacante.skills.find(function(s) {
+        return s.id === skillId;
+      }) : null;
+
+      var alvo = state[inimigo].chars.find(function(c) {
+        return c.id === alvoId && c.alive;
+      });
+
+      if (!atacante || !skill || !alvo) {
+        return send(ws, 'error', { message: 'Acao invalida' });
       }
 
-      var sk = attacker.skills ? attacker.skills.find(function(s) { return s.id === msg.skillId; }) : null;
-      var poder = sk ? (sk.power || 0) : 0;
-      var atkCardNv = msg.atkCardNv || 0;
-
-      room.state.pendingAction = {
-        attackerOwner: attackerOwner,
-        defenderOwner: defenderOwner,
-        attackerId: attacker.id,
-        targetId: target.id,
-        skillId: msg.skillId,
-        skillName: sk ? sk.name : '?',
-        poder: poder,
-        atkCardNv: atkCardNv
+      // Guarda ataque pendente aguardando defesa
+      room.pendingAction = {
+        atacanteId: atacanteId,
+        skillId: skillId,
+        skillName: skill.name,
+        poder: skill.power,
+        alvoId: alvoId,
+        atkCardNv: atkCardNv,
+        atkCardSuit: atkCardSuit,
+        atacante: atacante,
+        alvo: alvo,
+        attackerOwner: dono
       };
 
-      console.log('[PATF] action pendente:', attacker.name, '->', target.name);
-
-      var defenderWs = room.players.find(function(p) {
-        return p.playerIndex === (defenderOwner === 'p1' ? 0 : 1);
+      // Pede defesa ao defensor
+      var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];
+      send(defensorWs, 'defense_request', {
+        atacante: atacanteId,
+        alvo: alvoId,
+        skillId: skillId,
+        skillName: skill.name,
+        poder: skill.power,
+        atkCardNv: atkCardNv,
+        atkCardSuit: atkCardSuit,
+        attackerOwner: dono
       });
-      if (defenderWs) {
-        send(defenderWs, 'defense_request', {
-          atacante: attacker.id,
-          alvo: target.id,
-          skillId: msg.skillId,
-          skillName: sk ? sk.name : '?',
-          poder: poder,
-          atkCardNv: atkCardNv,
-          attackerOwner: attackerOwner
-        });
-      }
     }
 
-      else if (msg.type === 'defense_response') {
+    else if (msg.type === 'defense_response') {
       var room = rooms[ws.roomId];
-      if (!room || !room.state || !room.state.pendingAction) return;
+      if (!room || !room.state || !room.pendingAction) return;
 
-      var pending = room.state.pendingAction;
-      room.state.pendingAction = null;
-
-      var attacker2 = room.state[pending.attackerOwner].chars.find(function(c) { return c.id === pending.attackerId; });
-      var target2 = room.state[pending.defenderOwner].chars.find(function(c) { return c.id === pending.targetId; });
-
-      if (!attacker2 || !target2) return;
+      var state = room.state;
+      var pa = room.pendingAction;
+      room.pendingAction = null;
 
       var defCardNv = msg.defCardNv || 0;
       var isJack = msg.isJack || false;
-      var dano = 0;
-      var morreu = false;
 
+      var atacante = pa.atacante;
+      var alvo = pa.alvo;
+
+      // Valete — esquiva total
       if (isJack) {
-        console.log('[PATF] Esquiva! ' + target2.name + ' esquivou!');
+        broadcast(room, 'action_result', {
+          atacante: pa.atacanteId,
+          skill: pa.skillId,
+          alvo: pa.alvoId,
+          dano: 0,
+          hpAlvo: alvo.hp,
+          morreu: false,
+          esquivou: true
+        });
       } else {
-        dano = gameInit.resolveAttack(
-          (attacker2.curAtq || attacker2.atq) + pending.atkCardNv,
-          pending.poder,
-          (target2.curDef || target2.def) + defCardNv
-        );
-        target2.hp -= dano;
-        morreu = target2.hp <= 0;
-        if (morreu) { target2.hp = 0; target2.alive = false; }
+        // Calcula dano com defesa
+        var defTotal = alvo.def + defCardNv;
+        var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, pa.poder, defTotal);
+
+        alvo.hp -= dano;
+        if (alvo.hp <= 0) {
+          alvo.hp = 0;
+          alvo.alive = false;
+        }
+
+        broadcast(room, 'action_result', {
+          atacante: pa.atacanteId,
+          skill: pa.skillId,
+          alvo: pa.alvoId,
+          dano: dano,
+          hpAlvo: alvo.hp,
+          morreu: !alvo.alive
+        });
+
+        // Verifica vitória
+        var winner = gameInit.checkWin(state);
+        if (winner) {
+          broadcast(room, 'game_over', { winner: winner, reason: 'battle' });
+          return;
+        }
       }
+    }
 
-      console.log('[PATF] defesa resolvida:', attacker2.name, '->', target2.name, 'dano:', dano, 'hp:', target2.hp);
-
-      broadcast(room, 'action_result', {
-        atacante: attacker2.id,
-        alvo: target2.id,
-        dano: dano,
-        hpAlvo: target2.hp,
-        morreu: morreu,
-        isJack: isJack
-      });
+    else if (msg.type === 'request_next_turn') {
+      var room = rooms[ws.roomId];
+      if (!room || !room.state) return;
 
       var order = room.state.order;
-      var idx = (room.state.orderIdx || 0) + 1;
-      if (idx >= order.length) idx = 0;
+      var idx = room.state.orderIdx || 0;
+
+      while (idx < order.length && !order[idx]) idx++;
+      if (idx >= order.length) {
+        room.state.orderIdx = 0;
+        idx = 0;
+      }
+
       room.state.orderIdx = idx;
-      var next = order[idx];
-      if (next) {
-        broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
-      }
-      }
-        
+      var current = order[idx];
+
+      console.log('[PATF] next_turn:', current.charId, current.owner);
+      broadcast(room, 'next_turn', {
+        charId: current.charId,
+        owner: current.owner
+      });
+    }
+
     else if (msg.type === 'skip_turn') {
       var room = rooms[ws.roomId];
-      if (!room || !room.state || !room.state.order) return;
-      console.log('[PATF] skip_turn sala:', ws.roomId);
-
-      room.state.orderIdx = (room.state.orderIdx || 0) + 1;
-      if (room.state.orderIdx >= room.state.order.length) room.state.orderIdx = 0;
-      var next = room.state.order[room.state.orderIdx];
-      broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
+      if (!room) return;
+      console.log('[PATF] skip_turn sala:', ws.roomId, 'skipCount:', msg.skipCount);
+      if (room.state && room.state.order) {
+        room.state.orderIdx = (room.state.orderIdx || 0) + 1;
+        if (room.state.orderIdx >= room.state.order.length) room.state.orderIdx = 0;
+        var next = room.state.order[room.state.orderIdx];
+        broadcast(room, 'next_turn', { charId: next.charId, owner: next.owner });
+      }
     }
 
     else if (msg.type === 'gameloss') {
@@ -324,7 +349,8 @@ setInterval(function() {
   var timeout = 30 * 60 * 1000;
   Object.keys(rooms).forEach(function(roomId) {
     if (now - rooms[roomId].created > timeout) {
-      broadcast(rooms[roomId], 'room_expired', {});
+      var room = rooms[roomId];
+      broadcast(room, 'room_expired', {});
       delete rooms[roomId];
       console.log('[PATF] Sala expirada:', roomId);
     }
@@ -334,4 +360,4 @@ setInterval(function() {
 var PORT = process.env.PORT || 3000;
 server.listen(PORT, function() {
   console.log('[PATF] Servidor rodando na porta ' + PORT);
-});
+}); 

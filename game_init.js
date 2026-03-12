@@ -162,6 +162,62 @@ function resolveAttack(atq, poder, def) {
   var dano = atq + poder - def;
   return dano < 0 ? 0 : dano;
 }
+// ── DoTs (Dano por Turno) ───────────────────
+// Chamado pelo servidor no inicio de cada turno natural
+// Retorna array de efeitos que aconteceram (pro cliente exibir)
+function applyDoTs(char) {
+  var effects = [];
+
+  for (var i = 0; i < char.statuses.length; i++) {
+    var s = char.statuses[i];
+
+    // ── QUEIMADURA ──
+    if (s.id === 'burn') {
+      var burnDmg = 10;
+      char.hp -= burnDmg;
+      char.curDef = Math.max(0, char.curDef - 1);
+      effects.push({ id: 'burn', dmg: burnDmg, defLost: 1, icon: '🔥' });
+    }
+
+    // ── SANGRAMENTO ──
+    if (s.id === 'bleed') {
+      var bleedDmg = 3 * (s.stacks || 1);
+      char.hp -= bleedDmg;
+      effects.push({ id: 'bleed', dmg: bleedDmg, stacks: s.stacks || 1, icon: '🩸' });
+    }
+
+    // ── RADIAÇÃO ──
+    if (s.id === 'rad') {
+      var radDmg = 4 * (s.stacks || 1);
+      char.hp -= radDmg;
+      effects.push({ id: 'rad', dmg: radDmg, stacks: s.stacks || 1, icon: '☢️' });
+    }
+
+    // ── ESTÁTICA ──
+    if (s.id === 'static') {
+      var staticDmg = 5;
+      char.hp -= staticDmg;
+      effects.push({ id: 'static', dmg: staticDmg, icon: '⚡' });
+    }
+
+    // ── RESFRIAMENTO ──
+    if (s.id === 'chill') {
+      var chillDmg = 10;
+      char.hp -= chillDmg;
+      char.curAtq = Math.max(0, char.curAtq - 1);
+      effects.push({ id: 'chill', dmg: chillDmg, atqLost: 1, icon: '🧊' });
+    }
+  }
+
+  // Checa se morreu
+  if (char.hp <= 0) {
+    char.hp = 0;
+    char.alive = false;
+    effects.push({ type: 'death', charId: char.id });
+  }
+
+  return effects;
+}
 
 module.exports = {
   buildDeck: buildDeck,
@@ -170,5 +226,6 @@ module.exports = {
   draw: draw,
   discard: discard,
   checkWin: checkWin,
-  resolveAttack: resolveAttack
+  resolveAttack: resolveAttack,
+  applyDoTs: applyDoTs
 };

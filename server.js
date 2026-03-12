@@ -20,6 +20,57 @@ function broadcast(room, type, data) {
     send(ws, type, data);
   });
 }
+function advanceTurn(room) {
+  var state = room.state;
+  state.orderIdx = (state.orderIdx || 0) + 1;
+  if (state.orderIdx >= state.order.length) state.orderIdx = 0;
+  var current = state.order[state.orderIdx];
+  var charId = current.charId;
+  var owner = current.owner;
+
+  // Busca o personagem no state
+  var ch = state[owner].chars.find(function(c) { return c.id === charId; });
+
+  // Pula mortos
+  if (ch && !ch.alive) {
+    advanceTurn(room);
+    return;
+  }
+
+  // Aplica DoTs antes do turno
+  var dotEffects = [];
+  if (ch) {
+    dotEffects = gameInit.applyDoTs(ch);
+  }
+
+  // Se teve DoTs, manda pro cliente
+  if (dotEffects.length > 0) {
+    broadcast(room, 'turn_effects', {
+      charId: charId,
+      owner: owner,
+      effects: dotEffects,
+      hp: ch.hp,
+      alive: ch.alive
+    });
+
+    // Morreu pelo DoT — checa vitória e avança
+    if (!ch.alive) {
+      var winner = gameInit.checkWin(state);
+      if (winner) {
+        broadcast(room, 'game_over', { winner: winner, reason: 'dot' });
+        return;
+      }
+      advanceTurn(room);
+      return;
+    }
+  }
+
+  // Manda o turno
+  broadcast(room, 'next_turn', {
+    charId: charId,
+    owner: owner
+  });
+}
 
 app.get('/', function(req, res) {
   res.json({

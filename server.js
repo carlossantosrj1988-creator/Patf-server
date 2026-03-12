@@ -104,12 +104,10 @@ wss.on('connection', function(ws) {
     else if (msg.type === 'start_battle') {
       var room = rooms[ws.roomId];
       if (!room) return;
-
       if (ws.playerIndex !== 0) return;
 
       var p1Ids = msg.p1Ids;
       var p2Ids = msg.p2Ids;
-
       var state = gameInit.initBattle(p1Ids, p2Ids);
 
       if (state.error) {
@@ -138,12 +136,10 @@ wss.on('connection', function(ws) {
       room.initiatives[pl] = msg.choices;
 
       console.log('[PATF] Iniciativa recebida de', pl, 'sala:', ws.roomId);
-
       send(ws, 'initiative_waiting', {});
 
       if (room.initiatives.p1 && room.initiatives.p2) {
         var all = [];
-
         ['p1', 'p2'].forEach(function(o) {
           room.initiatives[o].forEach(function(choice) {
             all.push({
@@ -168,10 +164,7 @@ wss.on('connection', function(ws) {
         room.initiatives = {};
 
         console.log('[PATF] Ordem definida:', all.map(function(a){ return a.charId; }).join(' → '));
-
-        broadcast(room, 'initiative_result', {
-          order: all
-        });
+        broadcast(room, 'initiative_result', { order: all });
       }
     }
 
@@ -191,11 +184,9 @@ wss.on('connection', function(ws) {
       var atacante = state[dono].chars.find(function(c) {
         return c.id === atacanteId && c.alive;
       });
-
       var skill = atacante ? atacante.skills.find(function(s) {
         return s.id === skillId;
       }) : null;
-
       var alvo = state[inimigo].chars.find(function(c) {
         return c.id === alvoId && c.alive;
       });
@@ -204,7 +195,6 @@ wss.on('connection', function(ws) {
         return send(ws, 'error', { message: 'Acao invalida' });
       }
 
-      // Guarda ataque pendente aguardando defesa
       room.pendingAction = {
         atacanteId: atacanteId,
         skillId: skillId,
@@ -218,7 +208,6 @@ wss.on('connection', function(ws) {
         attackerOwner: dono
       };
 
-      // Pede defesa ao defensor
       var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];
       send(defensorWs, 'defense_request', {
         atacante: atacanteId,
@@ -242,11 +231,9 @@ wss.on('connection', function(ws) {
 
       var defCardNv = msg.defCardNv || 0;
       var isJack = msg.isJack || false;
-
       var atacante = pa.atacante;
       var alvo = pa.alvo;
 
-      // Valete — esquiva total
       if (isJack) {
         broadcast(room, 'action_result', {
           atacante: pa.atacanteId,
@@ -258,7 +245,6 @@ wss.on('connection', function(ws) {
           esquivou: true
         });
       } else {
-        // Calcula dano com defesa
         var defTotal = alvo.def + defCardNv;
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, pa.poder, defTotal);
 
@@ -277,7 +263,6 @@ wss.on('connection', function(ws) {
           morreu: !alvo.alive
         });
 
-        // Verifica vitória
         var winner = gameInit.checkWin(state);
         if (winner) {
           broadcast(room, 'game_over', { winner: winner, reason: 'battle' });
@@ -360,4 +345,4 @@ setInterval(function() {
 var PORT = process.env.PORT || 3000;
 server.listen(PORT, function() {
   console.log('[PATF] Servidor rodando na porta ' + PORT);
-}); 
+});

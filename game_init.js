@@ -314,6 +314,12 @@ function applySkillEffects(skill, target) {
     addStatus(target, {id:'encantado', icon:'🎭', label:'Encantado', turns:1});
     applied.push('encantado');
   }
+  
+  if (d.includes('escudo')) {
+    var shieldVal = target.atq * 2;
+    addStatus(target, {id:'shield', icon:'🛡️', label:'Escudo('+shieldVal+')', turns:2, val:shieldVal});
+    applied.push('shield');
+  }
 
   return applied;
                        }

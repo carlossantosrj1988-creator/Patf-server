@@ -404,12 +404,40 @@ wss.on('connection', function(ws) {
           var ignoreArmorArea = paa.atacante.skills.find(function(s) { return s.id === paa.skillId; });
 ignoreArmorArea = ignoreArmorArea && (ignoreArmorArea.desc.includes('Ignora Armadura') || ignoreArmorArea.desc.includes('Catastrofico'));
 var defAreaTotal = ignoreArmorArea ? 0 : (alvoAtual.def + defCardNv);
+          // ── Fase 8c: Crítico e dano condicional (área) ──
+          var criticoArea = false;
+          if (paa.skillId === 'wpn' && Math.random() < 0.5) {
+            poderAreaTotal = poderAreaTotal * 2;
+            criticoArea = true;
+          }
+          if (paa.skillId === 'web') {
+            var temLentoA = alvoAtual.statuses.find(function(s) { return s.id === 'slow'; });
+            if (temLentoA) { poderAreaTotal = poderAreaTotal * 2; criticoArea = true; }
+          }
+          if (paa.skillId === 'uni') {
+            var temCondA = alvoAtual.statuses.find(function(s) { return s.id === 'exposed' || s.id === 'weak'; });
+            if (temCondA) { poderAreaTotal = poderAreaTotal * 2; criticoArea = true; }
+          }
+          if (paa.skillId === 'eli2') {
+            var idxExpA = alvoAtual.statuses.findIndex(function(s) { return s.id === 'exposed'; });
+            if (idxExpA !== -1) {
+              alvoAtual.statuses.splice(idxExpA, 1);
+              alvoAtual.curDef = alvoAtual.def;
+              poderAreaTotal = poderAreaTotal * 2;
+              criticoArea = true;
+            }
+          }
+          if (paa.skillId === 'tcz') {
+            var debuffsA = ['burn','bleed','rad','static','chill','frozen','stun','exposed','weak','amaciado','melt','slow'];
+            var countDebuffsA = alvoAtual.statuses.filter(function(s) { return debuffsA.indexOf(s.id) !== -1; }).length;
+            poderAreaTotal = poderAreaTotal + (3 * countDebuffsA);
+          }
 var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, defAreaTotal);
           alvoAtual.hp -= danoArea;
           if (alvoAtual.hp <= 0) { alvoAtual.hp = 0; alvoAtual.alive = false; }
           var skArea = paa.atacante.skills.find(function(s) { return s.id === paa.skillId; });
           var stArea = skArea ? gameInit.applySkillEffects(skArea, alvoAtual) : [];
-          paa.resultados.push({ alvoId: alvoAtual.id, dano: danoArea, hpAlvo: alvoAtual.hp, morreu: !alvoAtual.alive, esquivou: false, statusApplied: stArea });
+          paa.resultados.push({ alvoId: alvoAtual.id, dano: danoArea, hpAlvo: alvoAtual.hp, morreu: !alvoAtual.alive, esquivou: false, statusApplied: stArea, critico: criticoArea });
         }
 
         paa.areaIdx++;

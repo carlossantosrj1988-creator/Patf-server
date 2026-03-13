@@ -521,7 +521,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           dano: dano,
           hpAlvo: alvo.hp,
           morreu: !alvo.alive,
-          statusApplied: statusApplied
+         statusApplied: statusApplied,
+          critico: critico
         });
 
         // Verifica vitória

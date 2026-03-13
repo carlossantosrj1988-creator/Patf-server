@@ -311,9 +311,14 @@ wss.on('connection', function(ws) {
         // Avança turno após esquiva
         advanceTurn(room);
       } else {
+        // Trata poder multi-hit (ex: '2/2' ou '1/1/1')
+var poderTotal = pa.poder;
+if (typeof pa.poder === 'string' && pa.poder.indexOf('/') !== -1) {
+  poderTotal = pa.poder.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
+}
         // Calcula dano com defesa
         var defTotal = alvo.def + defCardNv;
-        var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, pa.poder, defTotal);
+        var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;
         if (alvo.hp <= 0) {

@@ -274,7 +274,7 @@ wss.on('connection', function(ws) {
       if (skill.target === 'all_ally') {
         var aliados = state[dono].chars.filter(function(c) { return c.alive; });
         aliados.forEach(function(aliado) {
-          var efeitoAlly = gameInit.applySkillEffects(skill, aliado);
+        var efeitoAlly = gameInit.applySkillEffects(skill, aliado, atacante);
           if (skill.type === 'Cura' && skill.power > 0) {
             aliado.hp = Math.min(aliado.maxHp, aliado.hp + Number(skill.power));
           }

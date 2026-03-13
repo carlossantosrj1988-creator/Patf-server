@@ -316,7 +316,7 @@ function applySkillEffects(skill, target, attacker) {
   }
   
   if (d.includes('escudo')) {
-    var shieldVal = target.atq * 2;
+    var shieldVal = (attacker ? attacker.atq : target.atq) + Number(skill.power || 0);
     addStatus(target, {id:'shield', icon:'🛡️', label:'Escudo('+shieldVal+')', turns:2, val:shieldVal});
     applied.push('shield');
   }

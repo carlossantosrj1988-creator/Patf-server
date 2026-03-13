@@ -449,6 +449,16 @@ var defAreaTotal = ignoreArmorArea ? 0 : (alvoAtual.def + defCardNv);
             poderAreaTotal = 5 + (satsuiA * 2);
             paa.atacante._satsui = 0;
           }
+
+          // ── Fase 8e: Sistema de Marcado (Kuro) — área ──
+          if (paa.skillId === 'sho') {
+            var jaMarcadoA = alvoAtual.statuses.find(function(s) { return s.id === 'marcado'; });
+            if (jaMarcadoA) { poderAreaTotal = poderAreaTotal * 2; }
+          }
+          if (paa.skillId === 'tat') {
+            var marcadoTatA = alvoAtual.statuses.find(function(s) { return s.id === 'marcado'; });
+            if (marcadoTatA) { poderAreaTotal = poderAreaTotal * 3; }
+          }
 var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, defAreaTotal);
           alvoAtual.hp -= danoArea;
           if (alvoAtual.hp <= 0) { alvoAtual.hp = 0; alvoAtual.alive = false; }

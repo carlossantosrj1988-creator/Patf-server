@@ -472,6 +472,34 @@ if (typeof pa.poder === 'string' && pa.poder.indexOf('/') !== -1) {
         var ignoreArmor = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
 ignoreArmor = ignoreArmor && (ignoreArmor.desc.includes('Ignora Armadura') || ignoreArmor.desc.includes('Catastrofico'));
 var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
+        // ── Fase 8c: Crítico e dano condicional ──
+        var critico = false;
+        if (pa.skillId === 'wpn' && Math.random() < 0.5) {
+          poderTotal = poderTotal * 2;
+          critico = true;
+        }
+        if (pa.skillId === 'web') {
+          var temLento = alvo.statuses.find(function(s) { return s.id === 'slow'; });
+          if (temLento) { poderTotal = poderTotal * 2; critico = true; }
+        }
+        if (pa.skillId === 'uni') {
+          var temCond = alvo.statuses.find(function(s) { return s.id === 'exposed' || s.id === 'weak'; });
+          if (temCond) { poderTotal = poderTotal * 2; critico = true; }
+        }
+        if (pa.skillId === 'eli2') {
+          var idxExp = alvo.statuses.findIndex(function(s) { return s.id === 'exposed'; });
+          if (idxExp !== -1) {
+            alvo.statuses.splice(idxExp, 1);
+            alvo.curDef = alvo.def;
+            poderTotal = poderTotal * 2;
+            critico = true;
+          }
+        }
+        if (pa.skillId === 'tcz') {
+          var debuffs = ['burn','bleed','rad','static','chill','frozen','stun','exposed','weak','amaciado','melt','slow'];
+          var countDebuffs = alvo.statuses.filter(function(s) { return debuffs.indexOf(s.id) !== -1; }).length;
+          poderTotal = poderTotal + (3 * countDebuffs);
+        }
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;

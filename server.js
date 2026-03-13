@@ -269,6 +269,24 @@ wss.on('connection', function(ws) {
       if (!atacante || !skill || !alvo) {
         return send(ws, 'error', { message: 'Acao invalida' });
       }
+
+      // ── ALL_ALLY: skill de suporte nos aliados ──
+      if (skill.target === 'all_ally') {
+        var aliados = state[dono].chars.filter(function(c) { return c.alive; });
+        aliados.forEach(function(aliado) {
+          var efeitoAlly = gameInit.applySkillEffects(skill, aliado);
+          if (skill.type === 'Cura' && skill.power > 0) {
+            aliado.hp = Math.min(aliado.maxHp, aliado.hp + Number(skill.power));
+          }
+          broadcast(room, 'action_result', {
+            atacante: atacanteId, skill: skillId, alvo: aliado.id,
+            dano: 0, hpAlvo: aliado.hp, morreu: false,
+            statusApplied: efeitoAlly, isAlly: true
+          });
+        });
+        advanceTurn(room);
+        return;
+      }
       
       // ── ÁREA: múltiplos alvos ──
       if (msg.isArea && msg.targetIds && msg.targetIds.length > 0) {

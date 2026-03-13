@@ -324,6 +324,16 @@ function applySkillEffects(skill, target, attacker) {
     applied.push('shield');
   }
 
+  if (skill.id === 'sho' && attacker && attacker.id === 'kuro') {
+    addStatus(target, {id:'marcado', icon:'🎯', label:'Marcado (2t)', turns:2});
+    applied.push('marcado');
+  }
+
+  if (skill.id === 'tat' && attacker && attacker.id === 'kuro') {
+    target.statuses = target.statuses.filter(function(s) { return s.id !== 'marcado'; });
+    applied.push('marcado_consumido');
+  }
+
   return applied;
                        }
 

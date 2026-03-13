@@ -118,6 +118,7 @@ function initBattle(p1Ids, p2Ids) {
     draw(state, 'p2');
   }
 
+  applyStartPassives(state);
   return state;
 }
 
@@ -336,6 +337,72 @@ function applySkillEffects(skill, target, attacker) {
 
   return applied;
                        }
+// ── Passivos de início de batalha ───────────
+function applyStartPassives(state) {
+  var PATRULHEIROS = ['pt_cae','pt_elo','pt_zar','pt_var','pt_tha','pt_aer'];
+  ['p1','p2'].forEach(function(o) {
+    var chars = state[o].chars;
+    var inimigo = o === 'p1' ? 'p2' : 'p1';
+    chars.forEach(function(ch) {
+      if (ch.id === 'pt_tha') {
+        var n = chars.filter(function(c) { return c !== ch && PATRULHEIROS.indexOf(c.id) !== -1; }).length;
+        if (n > 0) { ch.maxHp += n * 10; ch.hp += n * 10; }
+      }
+      if (ch.id === 'pt_cae') {
+        var n = chars.filter(function(c) { return c !== ch && PATRULHEIROS.indexOf(c.id) !== -1; }).length;
+        if (n > 0) {
+          chars.filter(function(c) { return c !== ch; }).forEach(function(a) {
+            a.curDef += n; a.def += n; a._caerynDef = (a._caerynDef || 0) + n;
+          });
+        }
+      }
+      if (ch.id === 'pt_var') {
+        var n = chars.filter(function(c) { return c !== ch && PATRULHEIROS.indexOf(c.id) !== -1; }).length;
+        if (n > 0) {
+          chars.filter(function(c) { return c !== ch; }).forEach(function(a) {
+            a.curAtq += n; a.atq += n; a._varokAtq = (a._varokAtq || 0) + n;
+          });
+        }
+      }
+      if (ch.id === 'pt_zar') {
+        var n = chars.filter(function(c) { return c !== ch && PATRULHEIROS.indexOf(c.id) !== -1; }).length;
+        if (n > 0) {
+          chars.forEach(function(a) {
+            a.skills = a.skills.map(function(sk) {
+              var p = sk.power;
+              if (typeof p === 'string' && p.indexOf('/') !== -1) {
+                p = p.split('/').map(function(v) { return String(parseInt(v) + n); }).join('/');
+              } else {
+                p = (typeof p === 'number' ? p : parseInt(p)) + n;
+              }
+              return Object.assign({}, sk, { power: p });
+            });
+            a._zaraePow = (a._zaraePow || 0) + n;
+          });
+        }
+      }
+      if (ch.id === 'zeph') {
+        chars.filter(function(c) { return c.id !== 'zeph'; }).forEach(function(a) {
+          a.curAtq += 1; a.curDef += 1; a._inspirado = true;
+        });
+      }
+      if (ch.id === 'tyre' && !ch._outfit) {
+        ch._outfit = 'verde';
+        addStatus(ch, {id:'outfit_verde', icon:'🟢', label:'Roupa Verde', turns:999});
+      }
+    });
+    var caeryn = chars.find(function(c) { return c.id === 'pt_cae'; });
+    if (caeryn && !caeryn._megazordUsed) {
+      var totalPat = chars.filter(function(c) { return PATRULHEIROS.indexOf(c.id) !== -1; }).length;
+      if (totalPat >= 3) {
+        caeryn._megazordUsed = true;
+        state[inimigo].chars.forEach(function(t) {
+          if (t.alive) { t.hp -= 20; if (t.hp <= 0) { t.hp = 0; t.alive = false; } }
+        });
+      }
+    }
+  });
+}
 
 module.exports = {
   buildDeck: buildDeck,
@@ -346,5 +413,6 @@ module.exports = {
   checkWin: checkWin,
   resolveAttack: resolveAttack,
   applyDoTs: applyDoTs,
-   applySkillEffects: applySkillEffects
+   applySkillEffects: applySkillEffects,
+  applyStartPassives: applyStartPassives
 };

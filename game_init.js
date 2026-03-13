@@ -208,6 +208,11 @@ function applyDoTs(char) {
       effects.push({ id: 'chill', dmg: chillDmg, atqLost: 1, icon: '🧊' });
     }
   }
+  // Decrementa turnos e remove status expirados
+  char.statuses = char.statuses.filter(function(s) {
+    s.turns = (s.turns || 1) - 1;
+    return s.turns > 0;
+  });
 
   // Checa se morreu
   if (char.hp <= 0) {

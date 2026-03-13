@@ -244,7 +244,7 @@ function addStatus(ch, st) {
 }
 
 // ── Aplicar status de skill no alvo ─────────
-function applySkillEffects(skill, target) {
+function applySkillEffects(skill, target, attacker) {
   var d = skill.desc.toLowerCase();
   var applied = [];
 

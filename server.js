@@ -323,6 +323,30 @@ wss.on('connection', function(ws) {
         alvo: alvo,
         attackerOwner: dono
       };
+      
+      // Melt/Catastrófico — bloqueia painel de defesa
+      var hasMelt = skill.desc.includes('Derreter Armadura') || skill.desc.includes('Catastrofico');
+      var ignoreArmor = skill.desc.includes('Ignora Armadura') || skill.desc.includes('Catastrofico');
+      if (hasMelt) {
+        var defMeltTotal = ignoreArmor ? 0 : alvo.def;
+        var poderMelt = skill.power;
+        if (typeof poderMelt === 'string' && poderMelt.indexOf('/') !== -1) {
+          poderMelt = poderMelt.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
+        }
+        var danoMelt = gameInit.resolveAttack(atacante.atq + atkCardNv, poderMelt, defMeltTotal);
+        alvo.hp -= danoMelt;
+        if (alvo.hp <= 0) { alvo.hp = 0; alvo.alive = false; }
+        var stMelt = gameInit.applySkillEffects(skill, alvo);
+        broadcast(room, 'action_result', {
+          atacante: atacanteId, skill: skillId, alvo: alvoId,
+          dano: danoMelt, hpAlvo: alvo.hp, morreu: !alvo.alive,
+          statusApplied: stMelt, melt: true
+        });
+        var winnerMelt = gameInit.checkWin(state);
+        if (winnerMelt) { broadcast(room, 'game_over', { winner: winnerMelt, reason: 'battle' }); return; }
+        advanceTurn(room);
+        return;
+      }
 
       // Pede defesa ao defensor
       var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];
@@ -359,7 +383,10 @@ wss.on('connection', function(ws) {
           if (typeof paa.poder === 'string' && paa.poder.indexOf('/') !== -1) {
             poderAreaTotal = paa.poder.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
           }
-          var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, alvoAtual.def + defCardNv);
+          var ignoreArmorArea = paa.atacante.skills.find(function(s) { return s.id === paa.skillId; });
+ignoreArmorArea = ignoreArmorArea && (ignoreArmorArea.desc.includes('Ignora Armadura') || ignoreArmorArea.desc.includes('Catastrofico'));
+var defAreaTotal = ignoreArmorArea ? 0 : (alvoAtual.def + defCardNv);
+var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, defAreaTotal);
           alvoAtual.hp -= danoArea;
           if (alvoAtual.hp <= 0) { alvoAtual.hp = 0; alvoAtual.alive = false; }
           var skArea = paa.atacante.skills.find(function(s) { return s.id === paa.skillId; });
@@ -424,7 +451,9 @@ if (typeof pa.poder === 'string' && pa.poder.indexOf('/') !== -1) {
   poderTotal = pa.poder.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
 }
         // Calcula dano com defesa
-        var defTotal = alvo.def + defCardNv;
+        var ignoreArmor = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
+ignoreArmor = ignoreArmor && (ignoreArmor.desc.includes('Ignora Armadura') || ignoreArmor.desc.includes('Catastrofico'));
+var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;

@@ -309,20 +309,6 @@ wss.on('connection', function(ws) {
         });
         return;
       }
-
-      // Guarda ataque pendente aguardando defesa
-      room.pendingAction = {
-        atacanteId: atacanteId,
-        skillId: skillId,
-        skillName: skill.name,
-        poder: skill.power,
-        alvoId: alvoId,
-        atkCardNv: atkCardNv,
-        atkCardSuit: atkCardSuit,
-        atacante: atacante,
-        alvo: alvo,
-        attackerOwner: dono
-      };
       
       // Melt/Catastrófico — bloqueia painel de defesa
       var hasMelt = skill.desc.includes('Derreter Armadura') || skill.desc.includes('Catastrofico');
@@ -347,6 +333,20 @@ wss.on('connection', function(ws) {
         advanceTurn(room);
         return;
       }
+      
+      // Guarda ataque pendente aguardando defesa
+      room.pendingAction = {
+        atacanteId: atacanteId,
+        skillId: skillId,
+        skillName: skill.name,
+        poder: skill.power,
+        alvoId: alvoId,
+        atkCardNv: atkCardNv,
+        atkCardSuit: atkCardSuit,
+        atacante: atacante,
+        alvo: alvo,
+        attackerOwner: dono
+      };
 
       // Pede defesa ao defensor
       var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];

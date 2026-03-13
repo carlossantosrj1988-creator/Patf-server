@@ -340,8 +340,60 @@ wss.on('connection', function(ws) {
 
     else if (msg.type === 'defense_response') {
       var room = rooms[ws.roomId];
-      if (!room || !room.state || !room.pendingAction) return;
+   if (!room || !room.state) return;
+      if (!room.pendingAction && !room.pendingAreaAction) return;
 
+      // ── RESPOSTA DE ÁREA ──
+      if (room.pendingAreaAction) {
+        var paa = room.pendingAreaAction;
+        var alvoAtual = paa.alvos[paa.areaIdx];
+        var defOwner = paa.attackerOwner === 'p1' ? 'p2' : 'p1';
+        var defAreaWs = room.players[defOwner === 'p1' ? 0 : 1];
+        var defCardNv = msg.defCardNv || 0;
+        var isJack = msg.isJack || false;
+
+        if (isJack) {
+          paa.resultados.push({ alvoId: alvoAtual.id, dano: 0, hpAlvo: alvoAtual.hp, morreu: false, esquivou: true });
+        } else {
+          var poderAreaTotal = paa.poder;
+          if (typeof paa.poder === 'string' && paa.poder.indexOf('/') !== -1) {
+            poderAreaTotal = paa.poder.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
+          }
+          var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, alvoAtual.def + defCardNv);
+          alvoAtual.hp -= danoArea;
+          if (alvoAtual.hp <= 0) { alvoAtual.hp = 0; alvoAtual.alive = false; }
+          var skArea = paa.atacante.skills.find(function(s) { return s.id === paa.skillId; });
+          var stArea = skArea ? gameInit.applySkillEffects(skArea, alvoAtual) : [];
+          paa.resultados.push({ alvoId: alvoAtual.id, dano: danoArea, hpAlvo: alvoAtual.hp, morreu: !alvoAtual.alive, esquivou: false, statusApplied: stArea });
+        }
+
+        paa.areaIdx++;
+
+        if (paa.areaIdx < paa.alvos.length) {
+          var proximo = paa.alvos[paa.areaIdx];
+          send(defAreaWs, 'defense_request', {
+            atacante: paa.atacanteId, alvo: proximo.id, skillId: paa.skillId,
+            skillName: paa.skillName, poder: paa.poder, atkCardNv: paa.atkCardNv,
+            atkCardSuit: paa.atkCardSuit, attackerOwner: paa.attackerOwner,
+            isArea: true, areaCurrent: paa.areaIdx + 1, areaTotal: paa.areaTotal
+          });
+          return;
+        }
+
+        paa.resultados.forEach(function(r) {
+          broadcast(room, 'action_result', {
+            atacante: paa.atacanteId, skill: paa.skillId, alvo: r.alvoId,
+            dano: r.dano, hpAlvo: r.hpAlvo, morreu: r.morreu,
+            esquivou: r.esquivou, statusApplied: r.statusApplied || [], isArea: true
+          });
+        });
+
+        room.pendingAreaAction = null;
+        var winnerArea = gameInit.checkWin(room.state);
+        if (winnerArea) { broadcast(room, 'game_over', { winner: winnerArea, reason: 'battle' }); return; }
+        advanceTurn(room);
+        return;
+      }
       var state = room.state;
       var pa = room.pendingAction;
       room.pendingAction = null;

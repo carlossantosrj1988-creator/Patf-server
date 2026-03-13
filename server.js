@@ -36,7 +36,22 @@ function advanceTurn(room) {
     advanceTurn(room);
     return;
   }
-
+  
+// Checa Frozen/Stun — 50% de perder o turno
+  if (ch) {
+    var hasFrozen = ch.statuses.find(function(s) { return s.id === 'frozen'; });
+    var hasStun   = ch.statuses.find(function(s) { return s.id === 'stun'; });
+    if ((hasFrozen || hasStun) && Math.random() < 0.5) {
+      broadcast(room, 'turn_skipped', {
+        charId: charId,
+        owner: owner,
+        reason: hasFrozen ? 'frozen' : 'stun'
+      });
+      advanceTurn(room);
+      return;
+    }
+  }
+  
   // Aplica DoTs antes do turno
   var dotEffects = [];
   if (ch) {

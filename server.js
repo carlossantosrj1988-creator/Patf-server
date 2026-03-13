@@ -592,6 +592,15 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
       if (!room) return;
       console.log('[PATF] skip_turn sala:', ws.roomId, 'skipCount:', msg.skipCount);
       if (room.state && room.state.order) {
+        var skOrder = room.state.order[room.state.orderIdx || 0];
+        if (skOrder) {
+          var skCh = room.state[skOrder.owner].chars.find(function(c) { return c.id === skOrder.charId && c.alive; });
+          if (skCh) {
+            if (skCh.id === 'sam') skCh._charge = Math.min(5, (skCh._charge || 0) + 1);
+            if (skCh.id === 'tyre') skCh._linkAccum = Math.min(2, (skCh._linkAccum || 0) + 1);
+            if (skCh.id === 'kuro') skCh._satsui = Math.min(10, (skCh._satsui || 0) + 2);
+          }
+        }
         advanceTurn(room);
       }
     }

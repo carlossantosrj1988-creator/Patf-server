@@ -563,6 +563,15 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           poderTotal = 5 + (satsui * 2);
           atacante._satsui = 0;
         }
+        // ── Fase 8e: Sistema de Marcado (Kuro) ──
+        if (pa.skillId === 'sho') {
+          var jaMarcado = alvo.statuses.find(function(s) { return s.id === 'marcado'; });
+          if (jaMarcado) { poderTotal = poderTotal * 2; }
+        }
+        if (pa.skillId === 'tat') {
+          var marcadoTat = alvo.statuses.find(function(s) { return s.id === 'marcado'; });
+          if (marcadoTat) { poderTotal = poderTotal * 3; }
+        }
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;

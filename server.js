@@ -432,6 +432,23 @@ var defAreaTotal = ignoreArmorArea ? 0 : (alvoAtual.def + defCardNv);
             var countDebuffsA = alvoAtual.statuses.filter(function(s) { return debuffsA.indexOf(s.id) !== -1; }).length;
             poderAreaTotal = poderAreaTotal + (3 * countDebuffsA);
           }
+          // ── Fase 8d: Acúmulo de cargas (área) ──
+          if (paa.skillId === 'fpl' || paa.skillId === 'ffr') {
+            var cargasA = paa.atacante._charge || 0;
+            poderAreaTotal = cargasA;
+            paa.atacante._charge = 0;
+          }
+          if (paa.skillId === 'aes') {
+            var accumA = paa.atacante._linkAccum || 0;
+            if (accumA >= 2) { paa.isAreaOverride = true; }
+            else if (accumA >= 1) { paa.ignoreArmorOverride = true; }
+            paa.atacante._linkAccum = 0;
+          }
+          if (paa.skillId === 'had') {
+            var satsuiA = paa.atacante._satsui || 0;
+            poderAreaTotal = 5 + (satsuiA * 2);
+            paa.atacante._satsui = 0;
+          }
 var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAreaTotal, defAreaTotal);
           alvoAtual.hp -= danoArea;
           if (alvoAtual.hp <= 0) { alvoAtual.hp = 0; alvoAtual.alive = false; }

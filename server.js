@@ -269,6 +269,46 @@ wss.on('connection', function(ws) {
       if (!atacante || !skill || !alvo) {
         return send(ws, 'error', { message: 'Acao invalida' });
       }
+      
+      // ── ÁREA: múltiplos alvos ──
+      if (msg.isArea && msg.targetIds && msg.targetIds.length > 0) {
+        var alvosArea = msg.targetIds.map(function(tid) {
+          return state[inimigo].chars.find(function(c) { return c.id === tid && c.alive; });
+        }).filter(Boolean);
+
+        if (alvosArea.length === 0) return;
+
+        room.pendingAreaAction = {
+          atacanteId: atacanteId,
+          skillId: skillId,
+          skillName: skill.name,
+          poder: skill.power,
+          atkCardNv: atkCardNv,
+          atkCardSuit: atkCardSuit,
+          atacante: atacante,
+          attackerOwner: dono,
+          alvos: alvosArea,
+          areaIdx: 0,
+          areaTotal: alvosArea.length,
+          resultados: []
+        };
+
+        var defAreaWs = room.players[inimigo === 'p1' ? 0 : 1];
+        send(defAreaWs, 'defense_request', {
+          atacante: atacanteId,
+          alvo: alvosArea[0].id,
+          skillId: skillId,
+          skillName: skill.name,
+          poder: skill.power,
+          atkCardNv: atkCardNv,
+          atkCardSuit: atkCardSuit,
+          attackerOwner: dono,
+          isArea: true,
+          areaCurrent: 1,
+          areaTotal: alvosArea.length
+        });
+        return;
+      }
 
       // Guarda ataque pendente aguardando defesa
       room.pendingAction = {

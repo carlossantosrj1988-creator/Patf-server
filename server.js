@@ -685,7 +685,15 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           return;
         }
       // Avança turno após o dano
-        advanceTurn(room);
+        if (pa.isQuickAction) {
+          broadcast(room, 'next_turn', {
+            charId: pa.atacanteId,
+            owner: pa.attackerOwner,
+            isQuickAction: true
+          });
+        } else {
+          advanceTurn(room);
+        }
       }
     }
 

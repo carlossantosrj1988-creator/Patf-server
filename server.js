@@ -693,6 +693,16 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         if (skill) {
           statusApplied = gameInit.applySkillEffects(skill, alvo);
         }
+        
+        // ── Fase 8h: Lorien/Grande Estrela — turno extra ao nocautear ──
+        if (killEvents.length > 0) {
+          var lori = state[pa.attackerOwner].chars.find(function(c) { return c.id === 'lori' && c.alive && c._extraTurn; });
+          if (lori) {
+            lori._extraTurn = false;
+            extraTurnGranted = true;
+            grantExtraTurn(room, 'lori', pa.attackerOwner);
+          }
+        }
 
         broadcast(room, 'action_result', {
           atacante: pa.atacanteId,

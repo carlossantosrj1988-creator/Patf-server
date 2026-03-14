@@ -403,6 +403,69 @@ function applyStartPassives(state) {
     }
   });
 }
+// ── Passivas ao nocautear ────────────────────
+function checkOnKill(state, deadChar, killerOwner) {
+  var deadOwner = killerOwner === 'p1' ? 'p2' : 'p1';
+  var deadTeam = state[deadOwner].chars;
+  var killerTeam = state[killerOwner].chars;
+  var events = [];
+
+  var kael = deadTeam.find(function(c) { return c.id === 'kael' && c.alive && c.id !== deadChar.id; });
+  if (kael) {
+    kael._furia = true;
+    kael.hp = Math.min(kael.maxHp, kael.hp + Math.floor(kael.maxHp * 0.2));
+    events.push({ type: 'kael_furia', kaelHp: kael.hp });
+  }
+
+  var lori = killerTeam.find(function(c) { return c.id === 'lori' && c.alive; });
+  if (lori) {
+    draw(state, killerOwner, 1);
+    lori._extraTurn = true;
+    lori.curAtq += 1; lori.atq += 1;
+    lori.curDef += 1; lori.def += 1;
+    events.push({ type: 'lori_kill', loriAtq: lori.curAtq, loriDef: lori.curDef });
+  }
+
+  var aliveAllies = deadTeam.filter(function(c) { return c.alive && c.id !== deadChar.id; });
+
+  if (deadChar.id === 'pt_cae') {
+    aliveAllies.forEach(function(c) {
+      if (c._caerynDef) { c.curDef -= c._caerynDef; c.def -= c._caerynDef; c._caerynDef = 0; }
+    });
+    events.push({ type: 'caeryn_morte' });
+  }
+  if (deadChar.id === 'pt_var') {
+    aliveAllies.forEach(function(c) {
+      if (c._varokAtq) { c.curAtq -= c._varokAtq; c.atq -= c._varokAtq; c._varokAtq = 0; }
+    });
+    events.push({ type: 'varok_morte' });
+  }
+  if (deadChar.id === 'pt_zar') {
+    aliveAllies.forEach(function(c) {
+      if (c._zaraePow) {
+        c.skills = c.skills.map(function(sk) {
+          var p = sk.power;
+          if (typeof p === 'string' && p.indexOf('/') !== -1) {
+            p = p.split('/').map(function(v) { return String(parseInt(v) - c._zaraePow); }).join('/');
+          } else {
+            p = (typeof p === 'number' ? p : parseInt(p)) - c._zaraePow;
+          }
+          return Object.assign({}, sk, { power: p });
+        });
+        c._zaraePow = 0;
+      }
+    });
+    events.push({ type: 'zarae_morte' });
+  }
+  if (deadChar.id === 'zeph') {
+    aliveAllies.forEach(function(c) {
+      if (c._inspirado) { c.curAtq -= 1; c.curDef -= 1; c._inspirado = false; }
+    });
+    events.push({ type: 'zephyr_morte' });
+  }
+
+  return events;
+}
 
 module.exports = {
   buildDeck: buildDeck,
@@ -414,5 +477,6 @@ module.exports = {
   resolveAttack: resolveAttack,
   applyDoTs: applyDoTs,
    applySkillEffects: applySkillEffects,
-  applyStartPassives: applyStartPassives
+  applyStartPassives: applyStartPassives,
+  checkOnKill: checkOnKill
 };

@@ -632,6 +632,15 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           var marcadoTat = alvo.statuses.find(function(s) { return s.id === 'marcado'; });
           if (marcadoTat) { poderTotal = poderTotal * 3; }
         }
+        // ── Fase 8f Etapa 3: Gorath/Agora é Sério — acúmulo ao receber ataque ──
+        if (alvo.id === 'gora' && alvo.alive) {
+          alvo._agoraSerioPow = (alvo._agoraSerioPow || 0) + 4;
+        }
+        // ── Fase 8f Etapa 3: Gorath/Agora é Sério — aplica e zera ao usar atc ──
+        if (pa.skillId === 'atc' && atacante.id === 'gora') {
+          poderTotal = poderTotal + (atacante._agoraSerioPow || 0);
+          atacante._agoraSerioPow = 0;
+        }
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;

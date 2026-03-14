@@ -439,6 +439,11 @@ wss.on('connection', function(ws) {
         attackerOwner: dono,
         isQuickAction: !!(msg.isQuickAction)
       };
+      
+      // ── Fase 8h: Voss/Instinto Reflexivo — marca esquiva ao usar sen ──
+      if (skillId === 'sen' && atacante.id === 'voss') {
+        atacante._spiderExtraTurn = true;
+      }
 
       // Pede defesa ao defensor
       var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];
@@ -590,7 +595,13 @@ var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAre
           esquivou: true
         });
         // Avança turno após esquiva
-        advanceTurn(room);
+        // ── Fase 8h: Voss/Instinto Reflexivo — esquivou → turno extra ──
+        if (alvo.id === 'voss' && alvo._spiderExtraTurn) {
+          alvo._spiderExtraTurn = false;
+          grantExtraTurn(room, alvo.id, pa.attackerOwner === 'p1' ? 'p2' : 'p1');
+        } else {
+          advanceTurn(room);
+        }
       } else {
         // Trata poder multi-hit (ex: '2/2' ou '1/1/1')
 var poderTotal = pa.poder;

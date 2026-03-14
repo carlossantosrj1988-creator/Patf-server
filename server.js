@@ -57,6 +57,11 @@ function advanceTurn(room) {
   if (ch) {
     dotEffects = gameInit.applyDoTs(ch);
   }
+  var dotKillEvents = [];
+  if (ch && !ch.alive) {
+    var dotKillerOwner = owner === 'p1' ? 'p2' : 'p1';
+    dotKillEvents = gameInit.checkOnKill(state, ch, dotKillerOwner);
+  }
 
   // Se teve DoTs, manda pro cliente
   if (dotEffects.length > 0) {
@@ -65,7 +70,8 @@ function advanceTurn(room) {
       owner: owner,
       effects: dotEffects,
       hp: ch.hp,
-      alive: ch.alive
+      alive: ch.alive,
+        killEvents: dotKillEvents
     });
 
     // Morreu pelo DoT — checa vitória e avança

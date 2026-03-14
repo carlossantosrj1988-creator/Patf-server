@@ -193,6 +193,17 @@ wss.on('connection', function(ws) {
           return { id: c.id, name: c.name, hp: c.hp, maxHp: c.maxHp };
         })
       });
+    // Emboscada Florestal: notifica cliente se houve dano inicial
+      ['p1','p2'].forEach(function(o) {
+        var caeryn = state[o].chars.find(function(c) { return c.id === 'pt_cae'; });
+        if (caeryn && caeryn._megazordUsed) {
+          var inimigo = o === 'p1' ? 'p2' : 'p1';
+          var resultados = state[inimigo].chars.map(function(t) {
+            return { charId: t.id, hp: t.hp, alive: t.alive };
+          });
+          broadcast(room, 'emboscada_florestal', { resultados: resultados });
+        }
+      });
     }
 
     else if (msg.type === 'submit_initiative') {

@@ -712,6 +712,17 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           broadcast(room, 'game_over', { winner: winner, reason: 'battle' });
           return;
         }
+        // ── Fase 8h: Naipe Ouro vs Espadas ──
+        var extraTurnGranted = false;
+        if (pa.atacante.suit === 'diamonds' && pa.alvo.suit === 'spades') {
+          grantExtraTurn(room, pa.atacanteId, pa.attackerOwner);
+          extraTurnGranted = true;
+        }
+        if (!extraTurnGranted && pa.alvo.alive && pa.atacante.suit === 'spades' && pa.alvo.suit === 'diamonds') {
+          var defOwnerNaipe = pa.attackerOwner === 'p1' ? 'p2' : 'p1';
+          grantExtraTurn(room, pa.alvoId, defOwnerNaipe);
+          extraTurnGranted = true;
+        }
       // Avança turno após o dano
         if (pa.isQuickAction) {
           broadcast(room, 'next_turn', {
@@ -719,7 +730,7 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
             owner: pa.attackerOwner,
             isQuickAction: true
           });
-        } else {
+        } else if (!extraTurnGranted) {
           advanceTurn(room);
         }
       }

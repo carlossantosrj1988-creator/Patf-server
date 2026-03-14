@@ -80,11 +80,50 @@ function advanceTurn(room) {
     }
   }
 
-  // Manda o turno
-  broadcast(room, 'next_turn', {
-    charId: charId,
-    owner: owner
-  });
+// Etapa 2 — Passivas de início de turno
+    var passiveEvents = [];
+
+    // Zephyr/Sorte Grande: 50% carta extra
+    if (ch && ch.id === 'zeph' && ch.alive) {
+      if (Math.random() < 0.5) {
+        gameInit.draw(state, owner, 1);
+        passiveEvents.push({ type: 'sorte_grande', charId: charId });
+      }
+    }
+
+    // Nyxa/Presença de Nimb: 50% ação rápida
+    if (ch && ch.id === 'nyxa' && ch.alive) {
+      if (Math.random() < 0.5) {
+        ch.quickAction = true;
+        passiveEvents.push({ type: 'nimb', charId: charId });
+      } else {
+        ch.quickAction = false;
+      }
+    }
+
+    // Gorath/Sou Invencível: +1 DEF a cada 10% vida perdida
+    if (ch && ch.id === 'gora' && ch.alive) {
+      var defBonus = Math.floor((1 - ch.hp / ch.maxHp) / 0.1);
+      ch.curDef = ch.def + defBonus;
+      if (defBonus > 0) passiveEvents.push({ type: 'sou_invencivel', charId: charId, defBonus: defBonus });
+    }
+
+    // Kael/Espírito de Combate: +1 ATQ a cada 10% vida perdida
+    if (ch && ch.id === 'kael' && ch.alive) {
+      var atqBonus = Math.floor((1 - ch.hp / ch.maxHp) / 0.1);
+      ch.curAtq = ch.atq + atqBonus;
+      if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });
+    }
+
+    // Manda o turno
+    broadcast(room, 'next_turn', {
+      charId: charId,
+      owner: owner,
+      passiveEvents: passiveEvents,
+      curDef: ch ? ch.curDef : null,
+      curAtq: ch ? ch.curAtq : null,
+      quickAction: ch ? ch.quickAction : false
+    });
 }
 
 app.get('/', function(req, res) {

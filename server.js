@@ -419,7 +419,8 @@ wss.on('connection', function(ws) {
         atkCardSuit: atkCardSuit,
         atacante: atacante,
         alvo: alvo,
-        attackerOwner: dono
+        attackerOwner: dono,
+        isQuickAction: !!(msg.isQuickAction)
       };
 
       // Pede defesa ao defensor

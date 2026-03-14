@@ -703,6 +703,27 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
             if (skCh.id === 'sam') skCh._charge = Math.min(5, (skCh._charge || 0) + 1);
             if (skCh.id === 'tyre') skCh._linkAccum = Math.min(2, (skCh._linkAccum || 0) + 1);
             if (skCh.id === 'kuro') skCh._satsui = Math.min(10, (skCh._satsui || 0) + 2);
+          // Etapa 3 — Passivas ao passar rodada
+          // Grimbol/Grande Gênio: carta extra
+          if (skCh.id === 'grim') {
+            gameInit.draw(room.state, skOrder.owner, 1);
+          }
+          // Grimbol/Engenharia Avançada: +1 carga Arcabuz (máx 3)
+          if (skCh.id === 'grim') {
+            skCh._charge = Math.min((skCh._charge || 0) + 1, 3);
+          }
+          // Kane/Resgate dos Prisioneiros: carta + rola arma
+          if (skCh.id === 'kane') {
+            gameInit.draw(room.state, skOrder.owner, 1);
+            var kaneRoll = Math.random();
+            var kaneWeapon = kaneRoll < 0.25 ? 'pistola' : kaneRoll < 0.5 ? 'metralhadora' : kaneRoll < 0.75 ? 'shotgun' : 'extra';
+            if (kaneWeapon === 'extra') gameInit.draw(room.state, skOrder.owner, 1);
+            broadcast(room, 'skip_passive', { charId: skCh.id, type: 'kane_resgate', weapon: kaneWeapon });
+          }
+          // Gorath/Agora é Sério: zera acúmulo ao passar turno
+          if (skCh.id === 'gora') {
+            skCh._agoraSerioPow = 0;
+          }
           }
         }
         advanceTurn(room);

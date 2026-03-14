@@ -685,7 +685,7 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         }
         var killEvents = [];
         if (!alvo.alive) {
-          killEvents = gameInit.checkOnKill(state, alvo, pa.defenderOwner === 'p1' ? 'p2' : 'p1');
+          killEvents = gameInit.checkOnKill(state, alvo, pa.attackerOwner);
         }
         // Aplica status da skill no alvo
         var skill = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });

@@ -648,6 +648,10 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           alvo.hp = 0;
           alvo.alive = false;
         }
+        var killEvents = [];
+        if (!alvo.alive) {
+          killEvents = gameInit.checkOnKill(state, alvo, pa.defenderOwner === 'p1' ? 'p2' : 'p1');
+        }
         // Aplica status da skill no alvo
         var skill = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
         var statusApplied = [];
@@ -663,7 +667,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           hpAlvo: alvo.hp,
           morreu: !alvo.alive,
          statusApplied: statusApplied,
-          critico: critico
+          critico: critico,
+          killEvents: killEvents
         });
 
         // Verifica vitória

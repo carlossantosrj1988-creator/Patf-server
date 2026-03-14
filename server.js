@@ -20,10 +20,27 @@ function broadcast(room, type, data) {
     send(ws, type, data);
   });
 }
+function grantExtraTurn(room, charId, owner) {
+  var state = room.state;
+  var ch = state[owner].chars.find(function(c) { return c.id === charId; });
+  if (!ch || !ch.alive) return;
+  if (ch.extraTurnUsed) return;
+  ch.extraTurnUsed = true;
+  state.order.splice(state.orderIdx + 1, 0, { charId: charId, owner: owner, extra: true });
+  broadcast(room, 'next_turn', {
+    charId: charId,
+    owner: owner,
+    isExtraTurn: true
+  });
+}
 function advanceTurn(room) {
   var state = room.state;
   state.orderIdx = (state.orderIdx || 0) + 1;
-  if (state.orderIdx >= state.order.length) state.orderIdx = 0;
+if (state.orderIdx >= state.order.length) {
+  state.order = state.order.filter(function(e) { return !e.extra; });
+  state.turn = (state.turn || 1) + 1;
+  state.orderIdx = 0;
+}
   var current = state.order[state.orderIdx];
   var charId = current.charId;
   var owner = current.owner;

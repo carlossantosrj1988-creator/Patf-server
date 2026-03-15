@@ -980,6 +980,7 @@ reactEvents: reactEvents
     else if (msg.type === 'skip_turn') {
       var room = rooms[ws.roomId];
       if (!room) return;
+      if (room.over) return;
       console.log('[PATF] skip_turn sala:', ws.roomId, 'skipCount:', msg.skipCount);
       if (room.state && room.state.order) {
         var skOrder = room.state.order[room.state.orderIdx || 0];

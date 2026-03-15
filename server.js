@@ -720,6 +720,23 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         if (!alvo.alive) {
           killEvents = gameInit.checkOnKill(state, alvo, pa.attackerOwner);
         }
+        // ── Fase 8j Sub-B: Kael/Ataque de Fúria — contra-ataque ──
+        var counterEvent = null;
+        if (alvo.id === 'kael' && alvo.alive && alvo._furia) {
+          var skAcaoKael = atacante.skills.find(function(s) { return s.id === pa.skillId; });
+          if (!skAcaoKael || skAcaoKael.acao !== 'F') {
+            var atacanteTemBleed = atacante.statuses.find(function(s) { return s.id === 'bleed'; });
+            if (atacanteTemBleed) {
+              var furSk = alvo.skills.find(function(s) { return s.id === 'fur'; });
+              if (furSk) {
+                var caDmg = Math.max(0, alvo.curAtq + Number(furSk.power) - atacante.curDef);
+                atacante.hp -= caDmg;
+                if (atacante.hp <= 0) { atacante.hp = 0; atacante.alive = false; }
+                counterEvent = { type: 'kael_furia_contra', dano: caDmg, targetId: pa.atacanteId, targetHp: atacante.hp, targetMorreu: !atacante.alive };
+              }
+            }
+          }
+        }
         // Aplica status da skill no alvo
         var skill = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
         var statusApplied = [];
@@ -746,7 +763,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           morreu: !alvo.alive,
          statusApplied: statusApplied,
           critico: critico,
-          killEvents: killEvents
+          killEvents: killEvents,
+counterEvent: counterEvent
         });
 
         // Verifica vitória

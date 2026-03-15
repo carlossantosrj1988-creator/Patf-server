@@ -881,7 +881,7 @@ reactEvents: reactEvents
         // Verifica vitória
         var winner = gameInit.checkWin(state);
         if (winner) {
-          broadcast(room, 'game_over', { winner: winner, reason: 'battle' });
+          endGame(room, winner, 'battle');
           return;
         }
         // ── Fase 8h: Naipe Ouro vs Espadas ──

@@ -108,7 +108,7 @@ if (state.orderIdx >= state.order.length) {
     if (!ch.alive) {
       var winner = gameInit.checkWin(state);
       if (winner) {
-        broadcast(room, 'game_over', { winner: winner, reason: 'dot' });
+        endGame(room, winner, 'dot');
         return;
       }
       advanceTurn(room);

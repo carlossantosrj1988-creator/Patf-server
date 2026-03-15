@@ -720,6 +720,39 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         if (!alvo.alive) {
           killEvents = gameInit.checkOnKill(state, alvo, pa.attackerOwner);
         }
+        // ── Fase 8j Sub-A: Aeryn/Patrulheiro de Combate — ataque conjunto e contra-ataque ──
+        var PATRULHEIROS_8J = ['pt_cae','pt_elo','pt_zar','pt_var','pt_tha'];
+        var reactEvents = [];
+        var skAtacanteAeryn = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
+        var acaoAtacanteAeryn = skAtacanteAeryn ? skAtacanteAeryn.acao : 'N';
+        if (PATRULHEIROS_8J.indexOf(pa.atacanteId) !== -1 && acaoAtacanteAeryn !== 'F') {
+          var aerynJunto = state[pa.attackerOwner].chars.find(function(c) { return c.id === 'pt_aer' && c.alive; });
+          if (aerynJunto && Math.random() < 0.5) {
+            var eli2skJ = aerynJunto.skills.find(function(s) { return s.id === 'eli2'; });
+            if (eli2skJ && alvo.alive) {
+              var danoAerynJ = Math.max(0, aerynJunto.curAtq + Number(eli2skJ.power) - alvo.curDef);
+              alvo.hp -= danoAerynJ;
+              if (alvo.hp <= 0) { alvo.hp = 0; alvo.alive = false; }
+              reactEvents.push({ type: 'aeryn_junto', dano: danoAerynJ, targetId: pa.alvoId, targetHp: alvo.hp, targetMorreu: !alvo.alive });
+            }
+          }
+        }
+        if (acaoAtacanteAeryn !== 'F') {
+          var defOwnerAeryn = pa.attackerOwner === 'p1' ? 'p2' : 'p1';
+          var aerynContra = state[defOwnerAeryn].chars.find(function(c) { return c.id === 'pt_aer' && c.alive && c.id !== pa.alvoId; });
+          if (aerynContra) {
+            var patAliados = state[defOwnerAeryn].chars.filter(function(c) { return c.alive && PATRULHEIROS_8J.indexOf(c.id) !== -1; });
+            if (patAliados.length >= 2 && Math.random() < 0.5) {
+              var eli2skC = aerynContra.skills.find(function(s) { return s.id === 'eli2'; });
+              if (eli2skC && pa.atacante.alive) {
+                var danoAerynC = Math.max(0, aerynContra.curAtq + Number(eli2skC.power) - pa.atacante.curDef);
+                pa.atacante.hp -= danoAerynC;
+                if (pa.atacante.hp <= 0) { pa.atacante.hp = 0; pa.atacante.alive = false; }
+                reactEvents.push({ type: 'aeryn_contra', dano: danoAerynC, targetId: pa.atacanteId, targetHp: pa.atacante.hp, targetMorreu: !pa.atacante.alive });
+              }
+            }
+          }
+        }
         // ── Fase 8j Sub-B: Kael/Ataque de Fúria — contra-ataque ──
         var counterEvent = null;
         if (alvo.id === 'kael' && alvo.alive && alvo._furia) {
@@ -764,7 +797,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
          statusApplied: statusApplied,
           critico: critico,
           killEvents: killEvents,
-counterEvent: counterEvent
+counterEvent: counterEvent,
+reactEvents: reactEvents
         });
 
         // Verifica vitória

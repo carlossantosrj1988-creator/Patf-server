@@ -643,7 +643,7 @@ var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAre
 
         room.pendingAreaAction = null;
         var winnerArea = gameInit.checkWin(room.state);
-        if (winnerArea) { broadcast(room, 'game_over', { winner: winnerArea, reason: 'battle' }); return; }
+        if (winnerArea) { endGame(room, winnerArea, 'battle'); return; }
         advanceTurn(room);
         return;
       }

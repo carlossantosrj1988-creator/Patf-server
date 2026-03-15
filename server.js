@@ -854,6 +854,19 @@ reactEvents: reactEvents
           grantExtraTurn(room, pa.alvoId, defOwnerNaipe);
           extraTurnGranted = true;
         }
+        // ── Fase 8j Sub-C: Tyre/Roupa Vermelha — detecta e suspende ──
+        var skAtacanteTyre = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
+        var acaoTyre = skAtacanteTyre ? skAtacanteTyre.acao : 'N';
+        var tyreVermelha = state[pa.attackerOwner === 'p1' ? 'p2' : 'p1'].chars.find(function(c) {
+          return c.id === 'tyre' && c.alive && c.id === pa.alvoId && c.statuses.find(function(s) { return s.id === 'outfit_vermelha'; });
+        });
+        if (tyreVermelha && acaoTyre !== 'F' && acaoTyre !== 'Rápida') {
+          room.pendingCounter = { tyre: tyreVermelha, atacanteId: pa.atacanteId, atacante: pa.atacante, attackerOwner: pa.attackerOwner, isQuickAction: pa.isQuickAction };
+          var tyreOwner = pa.attackerOwner === 'p1' ? 'p2' : 'p1';
+          var tyreWs = room.players[tyreOwner === 'p1' ? 0 : 1];
+          send(tyreWs, 'counter_request', { charId: 'tyre', reason: 'roupa_vermelha' });
+          return;
+        }
       // Avança turno após o dano
         if (pa.isQuickAction) {
           broadcast(room, 'next_turn', {
@@ -866,6 +879,36 @@ reactEvents: reactEvents
         }
       }
     }
+      else if (msg.type === 'counter_response') {
+      var room = rooms[ws.roomId];
+      if (!room || !room.state || !room.pendingCounter) return;
+      var pc = room.pendingCounter;
+      room.pendingCounter = null;
+      var state = room.state;
+      var counterCardNv = msg.counterCardNv || 0;
+      var tyre = pc.tyre;
+      var avsSkill = tyre.skills.find(function(s) { return s.id === 'avs'; });
+      if (avsSkill && pc.atacante.alive) {
+        var poderAvs = Number(avsSkill.power) || 0;
+        var danoAvs = Math.max(0, tyre.curAtq + poderAvs + counterCardNv - pc.atacante.curDef);
+        pc.atacante.hp -= danoAvs;
+        if (pc.atacante.hp <= 0) { pc.atacante.hp = 0; pc.atacante.alive = false; }
+        broadcast(room, 'counter_result', {
+          charId: 'tyre',
+          targetId: pc.atacanteId,
+          targetHp: pc.atacante.hp,
+          targetMorreu: !pc.atacante.alive,
+          dano: danoAvs
+        });
+        var winnerC = gameInit.checkWin(state);
+        if (winnerC) { broadcast(room, 'game_over', { winner: winnerC, reason: 'battle' }); return; }
+      }
+      if (pc.isQuickAction) {
+        broadcast(room, 'next_turn', { charId: pc.atacanteId, owner: pc.attackerOwner, isQuickAction: true });
+      } else {
+        advanceTurn(room);
+      }
+      }
 
     else if (msg.type === 'request_next_turn') {
       var room = rooms[ws.roomId];

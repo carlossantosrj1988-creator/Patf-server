@@ -486,9 +486,9 @@ wss.on('connection', function(ws) {
         poder: skill.power,
         atkCardNv: atkCardNv,
         atkCardSuit: atkCardSuit,
-        attackerOwner: dono
+        attackerOwner: dono,
         interceptedBy: interceptorId,
-        interceptType: interceptType,
+        interceptType: interceptType
       });
     }
 

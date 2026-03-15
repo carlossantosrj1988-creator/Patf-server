@@ -20,6 +20,19 @@ function broadcast(room, type, data) {
     send(ws, type, data);
   });
 }
+// ── Fase 9: Encerrar batalha ──
+function endGame(room, winner, reason) {
+  if (room.over) return;
+  room.over = true;
+  broadcast(room, 'game_over', { winner: winner, reason: reason });
+  var roomId = Object.keys(rooms).find(function(id) { return rooms[id] === room; });
+  if (roomId) {
+    setTimeout(function() {
+      delete rooms[roomId];
+      console.log('[PATF] Sala encerrada:', roomId);
+    }, 5000);
+  }
+}
 function grantExtraTurn(room, charId, owner) {
   var state = room.state;
   var ch = state[owner].chars.find(function(c) { return c.id === charId; });

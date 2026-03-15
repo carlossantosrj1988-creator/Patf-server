@@ -343,6 +343,34 @@ wss.on('connection', function(ws) {
         return send(ws, 'error', { message: 'Acao invalida' });
       }
 
+      // ── Fase 8k: Nyxa/Azar ou Sorte — afeta todos os personagens ──
+      if (skill.target === 'all') {
+        var cardNvAll = atkCardNv;
+        var base = atacante.curAtq + Number(skill.power) + cardNvAll;
+        var allCharsAzs = state.p1.chars.concat(state.p2.chars).filter(function(c) { return c.alive; });
+        var azsResultados = [];
+        allCharsAzs.forEach(function(t) {
+          if (Math.random() < 0.5) {
+            var final = Math.max(0, base - t.curDef);
+            t.hp -= final;
+            if (t.hp <= 0) { t.hp = 0; t.alive = false; }
+            azsResultados.push({ charId: t.id, dano: final, cura: 0, hp: t.hp, morreu: !t.alive });
+          } else {
+            var prev = t.hp;
+            t.hp = Math.min(t.maxHp, t.hp + base);
+            azsResultados.push({ charId: t.id, dano: 0, cura: t.hp - prev, hp: t.hp, morreu: false });
+          }
+        });
+        broadcast(room, 'azs_result', {
+          atacante: atacanteId,
+          resultados: azsResultados
+        });
+        var winnerAzs = gameInit.checkWin(state);
+        if (winnerAzs) { broadcast(room, 'game_over', { winner: winnerAzs, reason: 'battle' }); return; }
+        advanceTurn(room);
+        return;
+      }
+
       // ── ALL_ALLY: skill de suporte nos aliados ──
       if (skill.target === 'all_ally') {
         var aliados = state[dono].chars.filter(function(c) { return c.alive; });

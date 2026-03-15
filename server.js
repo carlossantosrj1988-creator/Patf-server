@@ -379,7 +379,7 @@ wss.on('connection', function(ws) {
           resultados: azsResultados
         });
         var winnerAzs = gameInit.checkWin(state);
-        if (winnerAzs) { broadcast(room, 'game_over', { winner: winnerAzs, reason: 'battle' }); return; }
+        if (winnerAzs) { endGame(room, winnerAzs, 'battle'); return; }
         advanceTurn(room);
         return;
       }

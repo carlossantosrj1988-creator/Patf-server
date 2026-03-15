@@ -537,8 +537,9 @@ wss.on('connection', function(ws) {
     else if (msg.type === 'defense_response') {
       var room = rooms[ws.roomId];
    if (!room || !room.state) return;
-      if (!room.pendingAction && !room.pendingAreaAction) return;
-
+      if (room.over) return;
+      if (!room.pendingAction && !room.pen
+          
       // ── RESPOSTA DE ÁREA ──
       if (room.pendingAreaAction) {
         var paa = room.pendingAreaAction;

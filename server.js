@@ -1018,7 +1018,7 @@ reactEvents: reactEvents
       if (!room) return;
       var winner = ws.playerIndex === 0 ? 'p2' : 'p1';
       console.log('[PATF] gameloss sala:', ws.roomId, 'winner:', winner);
-      broadcast(room, 'game_over', { winner: winner, reason: 'timeout' });
+      endGame(room, winner, 'timeout');
     }
 
   });

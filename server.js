@@ -942,7 +942,7 @@ reactEvents: reactEvents
           dano: danoAvs
         });
         var winnerC = gameInit.checkWin(state);
-        if (winnerC) { broadcast(room, 'game_over', { winner: winnerC, reason: 'battle' }); return; }
+        if (winnerC) { endGame(room, winnerC, 'battle'); return; }
       }
       if (pc.isQuickAction) {
         broadcast(room, 'next_turn', { charId: pc.atacanteId, owner: pc.attackerOwner, isQuickAction: true });

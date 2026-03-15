@@ -461,7 +461,7 @@ wss.on('connection', function(ws) {
           statusApplied: stMelt, melt: true
         });
         var winnerMelt = gameInit.checkWin(state);
-        if (winnerMelt) { broadcast(room, 'game_over', { winner: winnerMelt, reason: 'battle' }); return; }
+        if (winnerMelt) { endGame(room, winnerMelt, 'battle'); return; }
         advanceTurn(room);
         return;
       }

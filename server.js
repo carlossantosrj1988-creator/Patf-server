@@ -1032,10 +1032,15 @@ reactEvents: reactEvents
     if (roomId && rooms[roomId]) {
       var room = rooms[roomId];
       console.log('[PATF] Jogador desconectou:', ws.uid, 'sala:', roomId);
-      broadcast(room, 'player_disconnected', {
-        playerIndex: ws.playerIndex,
-        uid: ws.uid
-      });
+      if (room.state && !room.over) {
+        var winner = ws.playerIndex === 0 ? 'p2' : 'p1';
+        endGame(room, winner, 'disconnect');
+      } else {
+        broadcast(room, 'player_disconnected', {
+          playerIndex: ws.playerIndex,
+          uid: ws.uid
+        });
+      }
     }
   });
 });

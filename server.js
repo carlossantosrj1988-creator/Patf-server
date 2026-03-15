@@ -538,8 +538,8 @@ wss.on('connection', function(ws) {
       var room = rooms[ws.roomId];
    if (!room || !room.state) return;
       if (room.over) return;
-      if (!room.pendingAction && !room.pen
-          
+      if (!room.pendingAction && !room.pendingAreaAction) return;
+
       // ── RESPOSTA DE ÁREA ──
       if (room.pendingAreaAction) {
         var paa = room.pendingAreaAction;

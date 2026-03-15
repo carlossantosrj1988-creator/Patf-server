@@ -925,6 +925,7 @@ reactEvents: reactEvents
       else if (msg.type === 'counter_response') {
       var room = rooms[ws.roomId];
       if (!room || !room.state || !room.pendingCounter) return;
+      if (room.over) return;
       var pc = room.pendingCounter;
       room.pendingCounter = null;
       var state = room.state;

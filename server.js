@@ -330,6 +330,7 @@ wss.on('connection', function(ws) {
     else if (msg.type === 'action') {
       var room = rooms[ws.roomId];
       if (!room || !room.state) return;
+      if (room.over) return;
 
       var state = room.state;
       var atacanteId = msg.charId;

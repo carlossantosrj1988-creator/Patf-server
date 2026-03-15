@@ -444,18 +444,51 @@ wss.on('connection', function(ws) {
       if (skillId === 'sen' && atacante.id === 'voss') {
         atacante._spiderExtraTurn = true;
       }
+      // ── Fase 8i: Interceptação ──
+      var interceptorId = null;
+      var interceptType = null;
+      var defOwnerI = inimigo;
+      var alvoAtualI = alvo;
+      var skAtacante = atacante.skills.find(function(s) { return s.id === skillId; });
+      var acaoI = skAtacante ? skAtacante.acao : 'N';
+      if (acaoI !== 'F') {
+        // Aeryn/Patrulheiro Líder: cobre aliado com ≤20% vida
+        if (alvoAtualI.id !== 'pt_aer') {
+          var aeryn = state[defOwnerI].chars.find(function(c) { return c.id === 'pt_aer' && c.alive; });
+          if (aeryn && (alvoAtualI.hp / alvoAtualI.maxHp) <= 0.20) {
+            interceptorId = 'pt_aer';
+            interceptType = 'lider';
+            room.pendingAction.alvo = aeryn;
+            room.pendingAction.alvoId = 'pt_aer';
+          }
+        }
+        // Tyre/Roupa Azul: cobre qualquer aliado (não é ela mesma, não é Rápida)
+        if (!interceptorId && alvoAtualI.id !== 'tyre' && acaoI !== 'Rápida') {
+          var tyreI = state[defOwnerI].chars.find(function(c) {
+            return c.id === 'tyre' && c.alive && c.statuses.find(function(s) { return s.id === 'outfit_azul'; });
+          });
+          if (tyreI) {
+            interceptorId = 'tyre';
+            interceptType = 'azul';
+            room.pendingAction.alvo = tyreI;
+            room.pendingAction.alvoId = 'tyre';
+          }
+        }
+      }
 
       // Pede defesa ao defensor
       var defensorWs = room.players[inimigo === 'p1' ? 0 : 1];
       send(defensorWs, 'defense_request', {
         atacante: atacanteId,
-        alvo: alvoId,
+        alvo: room.pendingAction.alvoId,
         skillId: skillId,
         skillName: skill.name,
         poder: skill.power,
         atkCardNv: atkCardNv,
         atkCardSuit: atkCardSuit,
         attackerOwner: dono
+        interceptedBy: interceptorId,
+        interceptType: interceptType,
       });
     }
 

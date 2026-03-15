@@ -720,6 +720,42 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         if (!alvo.alive) {
           killEvents = gameInit.checkOnKill(state, alvo, pa.attackerOwner);
         }
+        // ── Fase 8j Sub-D: Nyxa/Máscara de Faces ──
+        // Máscara Feliz: Nyxa no time do defensor → contra-ataca o atacante
+        if (acaoAtacanteAeryn !== 'F') {
+          var defOwnerNyxa = pa.attackerOwner === 'p1' ? 'p2' : 'p1';
+          var nyxaFeliz = state[defOwnerNyxa].chars.find(function(c) {
+            return c.id === 'nyxa' && c.alive && c.id !== pa.alvoId && c.statuses.find(function(s) { return s.id === 'masc_feliz'; });
+          });
+          if (nyxaFeliz) {
+            var dadSkF = nyxaFeliz.skills.find(function(s) { return s.id === 'dad'; });
+            if (dadSkF && pa.atacante.alive) {
+              var poderDadF = typeof dadSkF.power === 'string' && dadSkF.power.indexOf('/') !== -1
+                ? dadSkF.power.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0)
+                : Number(dadSkF.power);
+              var danoDadF = Math.max(0, nyxaFeliz.curAtq + poderDadF - pa.atacante.curDef);
+              pa.atacante.hp -= danoDadF;
+              if (pa.atacante.hp <= 0) { pa.atacante.hp = 0; pa.atacante.alive = false; }
+              reactEvents.push({ type: 'nyxa_feliz', dano: danoDadF, targetId: pa.atacanteId, targetHp: pa.atacante.hp, targetMorreu: !pa.atacante.alive });
+            }
+          }
+          // Máscara Triste: Nyxa no time do atacante → ataca junto no mesmo alvo
+          var nyxaTriste = state[pa.attackerOwner].chars.find(function(c) {
+            return c.id === 'nyxa' && c.alive && c.id !== pa.atacanteId && c.statuses.find(function(s) { return s.id === 'masc_triste'; });
+          });
+          if (nyxaTriste && alvo.alive) {
+            var dadSkT = nyxaTriste.skills.find(function(s) { return s.id === 'dad'; });
+            if (dadSkT) {
+              var poderDadT = typeof dadSkT.power === 'string' && dadSkT.power.indexOf('/') !== -1
+                ? dadSkT.power.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0)
+                : Number(dadSkT.power);
+              var danoDadT = Math.max(0, nyxaTriste.curAtq + poderDadT - alvo.curDef);
+              alvo.hp -= danoDadT;
+              if (alvo.hp <= 0) { alvo.hp = 0; alvo.alive = false; }
+              reactEvents.push({ type: 'nyxa_triste', dano: danoDadT, targetId: pa.alvoId, targetHp: alvo.hp, targetMorreu: !alvo.alive });
+            }
+          }
+        }
         // ── Fase 8j Sub-A: Aeryn/Patrulheiro de Combate — ataque conjunto e contra-ataque ──
         var PATRULHEIROS_8J = ['pt_cae','pt_elo','pt_zar','pt_var','pt_tha'];
         var reactEvents = [];

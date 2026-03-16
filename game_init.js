@@ -66,7 +66,7 @@ function makeChar(data, owner) {
         target: sk.target,
         desc: sk.desc || '',
         acao: sk.acao || 'N',
-        recarga: sk.recarga || 'N',
+        recarga: sk.recarga || (sk.recharge ? 'L' : 'N'),
         turno: sk.turno || 'N',
         recharge: sk.recharge || false
       };

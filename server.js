@@ -981,7 +981,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           critico: critico,
           killEvents: killEvents,
 counterEvent: counterEvent,
-reactEvents: reactEvents
+reactEvents: reactEvents,
+          suitAdv: suitAdv
         });
 
         // Verifica vitória

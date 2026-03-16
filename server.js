@@ -395,6 +395,16 @@ wss.on('connection', function(ws) {
       if (atacante.cooldowns[skillId] > 0) {
         return send(ws, 'error', { message: 'Skill em recarga' });
       }
+      
+      // ── Recarga de skills ──
+      if (skill.recarga === 'L') {
+        atacante.cooldowns[skillId] = 2;
+      } else if (skill.acao === 'Rápida' && skill.recarga === 'N') {
+        atacante.cooldowns[skillId] = 1;
+      }
+      if (atacante.statuses.find(function(s) { return s.id === 'slow'; }) && skill.recarga === 'N') {
+        atacante.cooldowns[skillId] = 2;
+      }
 
       // ── Fase 8k: Nyxa/Azar ou Sorte — afeta todos os personagens ──
       if (skill.target === 'all') {

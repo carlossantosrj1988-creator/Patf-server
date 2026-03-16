@@ -819,6 +819,50 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           alvo.hp = 0;
           alvo.alive = false;
         }
+        // ── Naipe Advantage ──
+        var suitAdv = null;
+        var skNaipe = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });
+        var acaoNaipe = skNaipe ? skNaipe.acao : 'N';
+        if (pa.atacante.suit !== 'neutral' && pa.alvo.suit !== 'neutral' && acaoNaipe !== 'F') {
+          // ♠ Espadas → ♥ Copas: dano dobrado (já aplicado acima — mas dobramos aqui e reaplicamos)
+          if (pa.atacante.suit === 'spades' && pa.alvo.suit === 'hearts') {
+            // Desfaz dano simples e refaz dobrado
+            alvo.hp += dano;
+            dano = dano * 2;
+            alvo.hp -= dano;
+            if (alvo.hp <= 0) { alvo.hp = 0; alvo.alive = false; }
+            suitAdv = { type: 'spades_hearts' };
+          }
+          // ♥ Copas ataca ♣ Paus OU ♣ Paus ataca ♥ Copas → Copas ganha ATQ/DEF×2 por 2t
+          if ((pa.atacante.suit === 'hearts' && pa.alvo.suit === 'clubs') ||
+              (pa.atacante.suit === 'clubs'  && pa.alvo.suit === 'hearts')) {
+            var heartsChar = pa.atacante.suit === 'hearts' ? pa.atacante : pa.alvo;
+            var clubsChar  = pa.atacante.suit === 'clubs'  ? pa.atacante : pa.alvo;
+            var existingHA = heartsChar.statuses.find(function(s) { return s.id === 'hearts_adv'; });
+            if (existingHA) {
+              existingHA.turns = 2;
+              heartsChar.curAtq = heartsChar.atq * 2;
+              heartsChar.curDef = heartsChar.def * 2;
+            } else {
+              heartsChar.curAtq = heartsChar.atq * 2;
+              heartsChar.curDef = heartsChar.def * 2;
+              heartsChar.statuses.push({id:'hearts_adv', icon:'❤️', label:'Bônus Copas: ATQ/DEF×2 (2t)', turns:2});
+            }
+            suitAdv = { type: 'hearts_clubs', heartsCharId: heartsChar.id, clubsCharId: clubsChar.id };
+          }
+          // ♦ Ouro ataca ♣ Paus → Paus contra-ataca automaticamente (sem carta, sem painel)
+          if (pa.atacante.suit === 'diamonds' && pa.alvo.suit === 'clubs' && pa.alvo.alive) {
+            var clubsCh = pa.alvo;
+            var firstSk = clubsCh.skills[0];
+            var poderCC = firstSk ? (typeof firstSk.power === 'string' && firstSk.power.indexOf('/') !== -1
+              ? firstSk.power.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0)
+              : Number(firstSk.power)) : 0;
+            var danoCC = Math.max(0, clubsCh.curAtq + poderCC - pa.atacante.curDef);
+            pa.atacante.hp -= danoCC;
+            if (pa.atacante.hp <= 0) { pa.atacante.hp = 0; pa.atacante.alive = false; }
+            suitAdv = { type: 'clubs_counter', clubsCharId: clubsCh.id, targetId: pa.atacanteId, dano: danoCC, targetHp: pa.atacante.hp, targetMorreu: !pa.atacante.alive };
+          }
+        }
         var killEvents = [];
         if (!alvo.alive) {
           killEvents = gameInit.checkOnKill(state, alvo, pa.attackerOwner);

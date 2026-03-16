@@ -115,6 +115,17 @@ if (state.orderIdx >= state.order.length) {
       return;
     }
   }
+  
+  // ── Recarga: decrementa cooldowns na virada de rodada ──
+      if (state.orderIdx === 0) {
+        ['p1','p2'].forEach(function(o) {
+          state[o].chars.forEach(function(c) {
+            for (var sk in c.cooldowns) {
+              if (c.cooldowns[sk] > 0) c.cooldowns[sk]--;
+            }
+          });
+        });
+      }
 
 // Etapa 2 — Passivas de início de turno
     var passiveEvents = [];

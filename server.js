@@ -858,9 +858,24 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
               ? firstSk.power.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0)
               : Number(firstSk.power)) : 0;
             var danoCC = Math.max(0, clubsCh.curAtq + poderCC - pa.atacante.curDef);
+            var jaFurtivo = clubsCh.statuses.find(function(s) { return s.id === 'clubs_furtivo'; });
+            if (jaFurtivo) { jaFurtivo.turns = 2; } else { clubsCh.statuses.push({id:'clubs_furtivo', icon:'🌿', label:'Paus: Furtivo (2t)', turns:2}); }
             pa.atacante.hp -= danoCC;
             if (pa.atacante.hp <= 0) { pa.atacante.hp = 0; pa.atacante.alive = false; }
             suitAdv = { type: 'clubs_counter', clubsCharId: clubsCh.id, targetId: pa.atacanteId, dano: danoCC, targetHp: pa.atacante.hp, targetMorreu: !pa.atacante.alive };
+          }
+          if (pa.alvo.suit === 'clubs' && pa.alvo.alive &&
+              pa.atacante.suit !== 'diamonds' && acaoNaipe !== 'F' &&
+              pa.alvo.statuses.find(function(s) { return s.id === 'clubs_furtivo'; })) {
+            var clubsFCh = pa.alvo;
+            var firstSkF = clubsFCh.skills[0];
+            var poderCF = firstSkF ? (typeof firstSkF.power === 'string' && firstSkF.power.indexOf('/') !== -1
+              ? firstSkF.power.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0)
+              : Number(firstSkF.power)) : 0;
+            var danoCF = Math.max(0, clubsFCh.curAtq + poderCF - pa.atacante.curDef);
+            pa.atacante.hp -= danoCF;
+            if (pa.atacante.hp <= 0) { pa.atacante.hp = 0; pa.atacante.alive = false; }
+            suitAdv = { type: 'clubs_counter', clubsCharId: clubsFCh.id, targetId: pa.atacanteId, dano: danoCF, targetHp: pa.atacante.hp, targetMorreu: !pa.atacante.alive };
           }
         }
         var killEvents = [];

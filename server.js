@@ -228,10 +228,10 @@ wss.on('connection', function(ws) {
           var st = room.state;
           send(ws, 'reconnect_state', {
             p1Chars: st.p1.chars.map(function(c) {
-              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef };
+              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef, cooldowns: c.cooldowns };
             }),
             p2Chars: st.p2.chars.map(function(c) {
-              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef };
+              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef, cooldowns: c.cooldowns };
             }),
             order: st.order,
             orderIdx: st.orderIdx,

@@ -1064,9 +1064,14 @@ reactEvents: reactEvents
     if (roomId && rooms[roomId]) {
       var room = rooms[roomId];
       console.log('[PATF] Jogador desconectou:', ws.uid, 'sala:', roomId);
+      // ── Fase 10: Timer de reconexão ──
       if (room.state && !room.over) {
-        var winner = ws.playerIndex === 0 ? 'p2' : 'p1';
-        endGame(room, winner, 'disconnect');
+        room.disconnectTimer = setTimeout(function() {
+          if (room.state && !room.over) {
+            var winner = ws.playerIndex === 0 ? 'p2' : 'p1';
+            endGame(room, winner, 'disconnect');
+          }
+        }, 30000);
       } else {
         broadcast(room, 'player_disconnected', {
           playerIndex: ws.playerIndex,

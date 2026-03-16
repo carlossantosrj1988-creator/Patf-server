@@ -223,6 +223,23 @@ wss.on('connection', function(ws) {
             turn: st.turn
           });
         }
+        // ── Fase 10: Reenviar defense_request pendente ──
+        if (room.pendingAction) {
+          var pa = room.pendingAction;
+          var defOwnerPa = pa.attackerOwner === 'p1' ? 'p2' : 'p1';
+          if (ws.playerIndex === (defOwnerPa === 'p1' ? 0 : 1)) {
+            send(ws, 'defense_request', {
+              atacante: pa.atacanteId,
+              alvo: pa.alvoId,
+              skillId: pa.skillId,
+              skillName: pa.skillName,
+              poder: pa.poder,
+              atkCardNv: pa.atkCardNv,
+              atkCardSuit: pa.atkCardSuit,
+              attackerOwner: pa.attackerOwner
+            });
+          }
+        }
         return;
       }
 

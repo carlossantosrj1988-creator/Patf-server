@@ -208,6 +208,21 @@ wss.on('connection', function(ws) {
           players: room.uids.length,
           reconnected: true
         });
+        // ── Fase 10: Reenviar state ao reconectar ──
+        if (room.state) {
+          var st = room.state;
+          send(ws, 'reconnect_state', {
+            p1Chars: st.p1.chars.map(function(c) {
+              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef };
+            }),
+            p2Chars: st.p2.chars.map(function(c) {
+              return { id: c.id, hp: c.hp, maxHp: c.maxHp, alive: c.alive, statuses: c.statuses, curAtq: c.curAtq, curDef: c.curDef };
+            }),
+            order: st.order,
+            orderIdx: st.orderIdx,
+            turn: st.turn
+          });
+        }
         return;
       }
 

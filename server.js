@@ -392,6 +392,9 @@ wss.on('connection', function(ws) {
       if (!atacante || !skill || !alvo) {
         return send(ws, 'error', { message: 'Acao invalida' });
       }
+      if (atacante.cooldowns[skillId] > 0) {
+        return send(ws, 'error', { message: 'Skill em recarga' });
+      }
 
       // ── Fase 8k: Nyxa/Azar ou Sorte — afeta todos os personagens ──
       if (skill.target === 'all') {

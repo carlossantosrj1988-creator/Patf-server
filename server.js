@@ -201,6 +201,10 @@ wss.on('connection', function(ws) {
         ws.roomId = roomId;
         ws.uid = uid;
         ws.playerIndex = existingIndex;
+        if (room.disconnectTimer) {
+          clearTimeout(room.disconnectTimer);
+          room.disconnectTimer = null;
+        }
         console.log('[PATF] Reconexao:', uid, 'sala:', roomId);
         send(ws, 'joined', {
           roomId: roomId,

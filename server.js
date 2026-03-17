@@ -396,6 +396,15 @@ wss.on('connection', function(ws) {
         broadcast(room, 'initiative_result', {
           order: all
         });
+        broadcast(room, 'battle_started', {
+  message: 'Batalha iniciada!',
+  p1Chars: room.state.p1.chars.map(function(c) {
+    return { id: c.id, name: c.name, hp: c.hp, maxHp: c.maxHp };
+  }),
+  p2Chars: room.state.p2.chars.map(function(c) {
+    return { id: c.id, name: c.name, hp: c.hp, maxHp: c.maxHp };
+  })
+});
       }
     }
 

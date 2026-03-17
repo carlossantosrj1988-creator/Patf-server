@@ -257,11 +257,7 @@ wss.on('connection', function(ws) {
             turn: st.turn
           });
         }
-        if (room.state && room.state.order && room.state.order.length > 0) {
-  send(ws, 'initiative_result', {
-    order: room.state.order
-  });
-        }
+        
         // ── Fase 10: Reenviar defense_request pendente ──
         if (room.pendingAction) {
           var pa = room.pendingAction;

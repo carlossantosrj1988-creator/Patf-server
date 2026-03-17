@@ -162,16 +162,6 @@ if (state.orderIdx >= state.order.length) {
       if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });
     }
 
-    // Compra de carta por turno
-    var cartaComprada = null;
-    if (ch && ch.alive) {
-      var handAntes = state[owner].hand.length;
-      gameInit.draw(state, owner, 1);
-      if (state[owner].hand.length > handAntes) {
-        cartaComprada = state[owner].hand[state[owner].hand.length - 1];
-      }
-    }
-
     // Manda o turno
     broadcast(room, 'next_turn', {
       charId: charId,
@@ -179,8 +169,7 @@ if (state.orderIdx >= state.order.length) {
       passiveEvents: passiveEvents,
       curDef: ch ? ch.curDef : null,
       curAtq: ch ? ch.curAtq : null,
-      quickAction: ch ? ch.quickAction : false,
-      cartaComprada: cartaComprada
+      quickAction: ch ? ch.quickAction : false 
     });
 }
 

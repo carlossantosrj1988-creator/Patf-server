@@ -171,6 +171,25 @@ if (state.orderIdx >= state.order.length) {
       curAtq: ch ? ch.curAtq : null,
       quickAction: ch ? ch.quickAction : false 
     });
+  // ── Timer do atacante (90s) ──
+  if (room.actionTimer) clearTimeout(room.actionTimer);
+  room.actionTimer = setTimeout(function() {
+    if (!room.state || room.over) return;
+    var cur = room.state.order[room.state.orderIdx];
+    if (!cur) return;
+    var skCh = room.state[cur.owner].chars.find(function(c) { return c.id === cur.charId && c.alive; });
+    if (skCh) {
+      if (skCh.id === 'sam') skCh._charge = Math.min(5, (skCh._charge || 0) + 1);
+      if (skCh.id === 'tyre') skCh._linkAccum = Math.min(2, (skCh._linkAccum || 0) + 1);
+      if (skCh.id === 'kuro') skCh._satsui = Math.min(10, (skCh._satsui || 0) + 2);
+      if (skCh.id === 'gora') skCh._agoraSerioPow = 0;
+      gameInit.draw(room.state, cur.owner, 1);
+    }
+    console.log('[PATF] Timer atacante expirou:', cur.charId);
+    broadcast(room, 'turn_timeout', { charId: cur.charId, owner: cur.owner });
+    room.actionTimer = null;
+    advanceTurn(room);
+  }, 90000);
 }
 
 app.get('/', function(req, res) {

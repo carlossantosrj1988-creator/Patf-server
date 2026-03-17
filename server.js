@@ -1110,14 +1110,12 @@ reactEvents: reactEvents,
             if (skCh.id === 'sam') skCh._charge = Math.min(5, (skCh._charge || 0) + 1);
             if (skCh.id === 'tyre') skCh._linkAccum = Math.min(2, (skCh._linkAccum || 0) + 1);
             if (skCh.id === 'kuro') skCh._satsui = Math.min(10, (skCh._satsui || 0) + 2);
+            // Compra base ao passar rodada
+          gameInit.draw(room.state, skOrder.owner, 1);
           // Etapa 3 — Passivas ao passar rodada
           // Grimbol/Grande Gênio: carta extra
           if (skCh.id === 'grim') {
             gameInit.draw(room.state, skOrder.owner, 1);
-          }
-          // Grimbol/Engenharia Avançada: +1 carga Arcabuz (máx 3)
-          if (skCh.id === 'grim') {
-            skCh._charge = Math.min((skCh._charge || 0) + 1, 3);
           }
           // Kane/Resgate dos Prisioneiros: carta + rola arma
           if (skCh.id === 'kane') {

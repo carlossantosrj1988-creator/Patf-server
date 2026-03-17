@@ -613,6 +613,26 @@ wss.on('connection', function(ws) {
         interceptedBy: interceptorId,
         interceptType: interceptType
       });
+      // ── Timer do defensor (30s) ──
+      if (room.defenseTimer) clearTimeout(room.defenseTimer);
+      room.defenseTimer = setTimeout(function() {
+        if (!room.state || room.over || !room.pendingAction) return;
+        console.log('[PATF] Timer defensor expirou');
+        room.defenseTimer = null;
+        var pa = room.pendingAction;
+        room.pendingAction = null;
+        broadcast(room, 'action_result', {
+          atacante: pa.atacanteId,
+          skill: pa.skillId,
+          alvo: pa.alvoId,
+          dano: 0,
+          hpAlvo: pa.alvo.hp,
+          morreu: false,
+          esquivou: true,
+          defTimedOut: true
+        });
+        advanceTurn(room);
+      }, 30000);
     }
 
     else if (msg.type === 'defense_response') {

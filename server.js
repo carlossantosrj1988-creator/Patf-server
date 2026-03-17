@@ -390,7 +390,7 @@ wss.on('connection', function(ws) {
         broadcast(room, 'initiative_result', {
           order: all
         });
-        advanceTurn(room);
+        setTimeout(function() { advanceTurn(room); }, 500);
       }
     }
 

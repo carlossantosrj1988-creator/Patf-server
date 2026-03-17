@@ -314,6 +314,7 @@ wss.on('connection', function(ws) {
     }
 
     else if (msg.type === 'start_battle') {
+      if (true) return; // bloqueia start antecipado
       var room = rooms[ws.roomId];
       if (!room) return;
 

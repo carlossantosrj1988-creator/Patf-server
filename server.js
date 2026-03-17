@@ -397,7 +397,9 @@ wss.on('connection', function(ws) {
       var room = rooms[ws.roomId];
       if (!room || !room.state) return;
       if (room.over) return;
-
+// ── Cancela timer do atacante ──
+      if (room.actionTimer) { clearTimeout(room.actionTimer); room.actionTimer = null; }
+      
       var state = room.state;
       var atacanteId = msg.charId;
       var skillId = msg.skillId;

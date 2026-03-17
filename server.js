@@ -639,6 +639,8 @@ wss.on('connection', function(ws) {
       var room = rooms[ws.roomId];
    if (!room || !room.state) return;
       if (room.over) return;
+      // ── Cancela timer do defensor ──
+      if (room.defenseTimer) { clearTimeout(room.defenseTimer); room.defenseTimer = null; }
       if (!room.pendingAction && !room.pendingAreaAction) return;
 
       // ── RESPOSTA DE ÁREA ──

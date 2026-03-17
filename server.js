@@ -552,6 +552,22 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
         advanceTurn(room);
         return;
       }
+
+      // Habilidade de efeito puro (power=0 + Encanto/Melhoria/Suporte) — sem defesa, só efeito
+if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Melhoria' || skill.type === 'Suporte')) {
+  var efeitoPuro = gameInit.applySkillEffects(skill, alvo);
+  broadcast(room, 'action_result', {
+    atacante: atacanteId, skill: skillId, alvo: alvoId,
+    dano: 0, hpAlvo: alvo.hp, morreu: false,
+    statusApplied: efeitoPuro
+  });
+  if (msg.isQuickAction) {
+    broadcast(room, 'next_turn', { charId: atacanteId, owner: dono, isQuickAction: true });
+  } else {
+    advanceTurn(room);
+  }
+  return;
+}
       
       // Guarda ataque pendente aguardando defesa
       room.pendingAction = {

@@ -1116,6 +1116,7 @@ reactEvents: reactEvents,
           // Grimbol/Grande Gênio: carta extra
           if (skCh.id === 'grim') {
             gameInit.draw(room.state, skOrder.owner, 1);
+            broadcast(room, 'skip_passive', { charId: skCh.id, type: 'grimbol_genio' });
           }
           // Kane/Resgate dos Prisioneiros: carta + rola arma
           if (skCh.id === 'kane') {
@@ -1124,6 +1125,17 @@ reactEvents: reactEvents,
             var kaneWeapon = kaneRoll < 0.25 ? 'pistola' : kaneRoll < 0.5 ? 'metralhadora' : kaneRoll < 0.75 ? 'shotgun' : 'extra';
             if (kaneWeapon === 'extra') gameInit.draw(room.state, skOrder.owner, 1);
             broadcast(room, 'skip_passive', { charId: skCh.id, type: 'kane_resgate', weapon: kaneWeapon });
+          }
+            // Elowen/Patrulheiro de Combate: +1 carta por patrulheiro aliado vivo
+          if (skCh.id === 'pt_elo') {
+            var PATRULHEIROS_ELO = ['pt_cae','pt_zar','pt_var','pt_tha','pt_aer'];
+            var patVivos = room.state[skOrder.owner].chars.filter(function(c) {
+              return c.id !== 'pt_elo' && c.alive && PATRULHEIROS_ELO.indexOf(c.id) !== -1;
+            });
+            if (patVivos.length > 0) {
+              gameInit.draw(room.state, skOrder.owner, patVivos.length);
+              broadcast(room, 'skip_passive', { charId: skCh.id, type: 'pt_elo_draw', count: patVivos.length });
+            }
           }
           // Gorath/Agora é Sério: zera acúmulo ao passar turno
           if (skCh.id === 'gora') {

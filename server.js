@@ -428,6 +428,11 @@ wss.on('connection', function(ws) {
         return send(ws, 'error', { message: 'Skill em recarga' });
       }
       
+      // Habilidade de efeito puro — carta não soma dano (espelha offline)
+if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Melhoria' || skill.type === 'Suporte')) {
+  atkCardNv = 0;
+}
+      
       // ── Recarga de skills ──
       if (skill.recarga === 'L') {
         atacante.cooldowns[skillId] = 2;

@@ -1100,13 +1100,15 @@ reactEvents: reactEvents,
         }
       // Avança turno após o dano
         if (pa.isQuickAction) {
-          broadcast(room, 'next_turn', {
-            charId: pa.atacanteId,
-            owner: pa.attackerOwner,
-            isQuickAction: true
-          });
-        } else if (!extraTurnGranted) {
-          advanceTurn(room);
+  setTimeout(function() {
+    broadcast(room, 'next_turn', {
+      charId: pa.atacanteId,
+      owner: pa.attackerOwner,
+      isQuickAction: true
+    });
+  }, 4500);
+} else if (!extraTurnGranted) {
+  setTimeout(function() { advanceTurn(room); }, 4500);
         }
       }
     }

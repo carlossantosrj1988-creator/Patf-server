@@ -422,9 +422,12 @@ wss.on('connection', function(ws) {
         return c.id === alvoId && c.alive;
       });
 
-      if (!atacante || !skill || !alvo) {
-        return send(ws, 'error', { message: 'Acao invalida' });
-      }
+      if (!atacante || !skill) {
+  return send(ws, 'error', { message: 'Acao invalida' });
+}
+if (!alvo && !(msg.isArea && msg.targetIds && msg.targetIds.length > 0)) {
+  return send(ws, 'error', { message: 'Acao invalida' });
+}
       if (atacante.cooldowns[skillId] > 0) {
         return send(ws, 'error', { message: 'Skill em recarga' });
       }

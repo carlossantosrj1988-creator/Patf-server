@@ -1214,6 +1214,7 @@ reactEvents: reactEvents,
           }
           }
         }
+        broadcast(room, 'skip_anim', { charId: skOrder.charId, owner: skOrder.owner });
         setTimeout(function() { advanceTurn(room); }, 1500);
       }
     }

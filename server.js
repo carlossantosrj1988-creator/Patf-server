@@ -1042,6 +1042,8 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
         if (skill) {
           statusApplied = gameInit.applySkillEffects(skill, alvo);
         }
+
+        var extraTurnGranted = false;
         
         // ── Fase 8h: Lorien/Grande Estrela — turno extra ao nocautear ──
         if (killEvents.length > 0) {
@@ -1075,7 +1077,6 @@ reactEvents: reactEvents,
           return;
         }
         // ── Fase 8h: Naipe Ouro vs Espadas ──
-        var extraTurnGranted = false;
         if (pa.atacante.suit === 'diamonds' && pa.alvo.suit === 'spades') {
           grantExtraTurn(room, pa.atacanteId, pa.attackerOwner);
           extraTurnGranted = true;

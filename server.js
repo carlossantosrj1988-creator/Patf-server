@@ -1214,7 +1214,7 @@ reactEvents: reactEvents,
           }
           }
         }
-        advanceTurn(room);
+        setTimeout(function() { advanceTurn(room); }, 4500);
       }
     }
 

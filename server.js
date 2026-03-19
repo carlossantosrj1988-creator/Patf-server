@@ -169,7 +169,8 @@ if (state.orderIdx >= state.order.length) {
       passiveEvents: passiveEvents,
       curDef: ch ? ch.curDef : null,
       curAtq: ch ? ch.curAtq : null,
-      quickAction: ch ? ch.quickAction : false 
+      quickAction: ch ? ch.quickAction : false,
+turn: state.turn 
     });
   // ── Timer do atacante (90s) ──
   if (room.actionTimer) clearTimeout(room.actionTimer);

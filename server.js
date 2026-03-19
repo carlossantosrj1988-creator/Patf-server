@@ -1068,7 +1068,11 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           killEvents: killEvents,
 counterEvent: counterEvent,
 reactEvents: reactEvents,
-          suitAdv: suitAdv
+          suitAdv: suitAdv,
+atkCardNv: pa.atkCardNv,
+poderUsado: poderTotal,
+defTotal: defTotal,
+atkAtq: atacante.curAtq
         });
 
         // Verifica vitória

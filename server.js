@@ -132,6 +132,7 @@ if (state.orderIdx >= state.order.length) {
 
     // Zephyr/Sorte Grande: 50% carta extra
     if (ch && ch.id === 'zeph' && ch.alive) {
+      if (ch && ch.id === 'zeph' && ch.alive && !current.extra) {
       if (Math.random() < 0.5) {
         gameInit.draw(state, owner, 1);
         passiveEvents.push({ type: 'sorte_grande', charId: charId });
@@ -140,6 +141,7 @@ if (state.orderIdx >= state.order.length) {
 
     // Nyxa/Presença de Nimb: 50% ação rápida
     if (ch && ch.id === 'nyxa' && ch.alive) {
+      if (ch && ch.id === 'nyxa' && ch.alive && !current.extra) {
       if (Math.random() < 0.5) {
         ch.quickAction = true;
         passiveEvents.push({ type: 'nimb', charId: charId });
@@ -150,6 +152,7 @@ if (state.orderIdx >= state.order.length) {
 
     // Gorath/Sou Invencível: +1 DEF a cada 10% vida perdida
     if (ch && ch.id === 'gora' && ch.alive) {
+      if (ch && ch.id === 'gora' && ch.alive && !current.extra) {
       var defBonus = Math.floor((1 - ch.hp / ch.maxHp) / 0.1);
       ch.curDef = ch.def + defBonus;
       if (defBonus > 0) passiveEvents.push({ type: 'sou_invencivel', charId: charId, defBonus: defBonus });
@@ -157,6 +160,7 @@ if (state.orderIdx >= state.order.length) {
 
     // Kael/Espírito de Combate: +1 ATQ a cada 10% vida perdida
     if (ch && ch.id === 'kael' && ch.alive) {
+      if (ch && ch.id === 'kael' && ch.alive && !current.extra) {
       var atqBonus = Math.floor((1 - ch.hp / ch.maxHp) / 0.1);
       ch.curAtq = ch.atq + atqBonus;
       if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });

@@ -166,6 +166,7 @@ if (state.orderIdx >= state.order.length) {
     broadcast(room, 'next_turn', {
       charId: charId,
       owner: owner,
+      turn: state.turn,
       passiveEvents: passiveEvents,
       curDef: ch ? ch.curDef : null,
       curAtq: ch ? ch.curAtq : null,

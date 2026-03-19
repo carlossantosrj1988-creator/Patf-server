@@ -175,7 +175,6 @@ if (state.orderIdx >= state.order.length) {
   if (room.actionTimer) clearTimeout(room.actionTimer);
   room.actionTimer = setTimeout(function() {
     if (!room.state || room.over) return;
-    if (!room.state.order || !room.state.order.length) return;
     var cur = room.state.order[room.state.orderIdx];
     if (!cur) return;
     var skCh = room.state[cur.owner].chars.find(function(c) { return c.id === cur.charId && c.alive; });

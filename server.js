@@ -129,7 +129,6 @@ if (state.orderIdx >= state.order.length) {
 
 // Etapa 2 — Passivas de início de turno
     var passiveEvents = [];
-  if (!current.extra) {
 
     // Zephyr/Sorte Grande: 50% carta extra
     if (ch && ch.id === 'zeph' && ch.alive) {
@@ -162,7 +161,6 @@ if (state.orderIdx >= state.order.length) {
       ch.curAtq = ch.atq + atqBonus;
       if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });
     }
-  }
 
     // Manda o turno
     broadcast(room, 'next_turn', {

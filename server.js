@@ -161,6 +161,11 @@ if (state.orderIdx >= state.order.length) {
       ch.curAtq = ch.atq + atqBonus;
       if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });
     }
+  // Kuro/Concentração Marcial: +1 carga por turno
+    if (ch && ch.id === 'kuro' && ch.alive) {
+      ch._satsui = Math.min(10, (ch._satsui || 0) + 1);
+      passiveEvents.push({ type: 'kuro_satsui', charId: charId, satsui: ch._satsui });
+    }
 
     // Manda o turno
     broadcast(room, 'next_turn', {
@@ -170,7 +175,8 @@ if (state.orderIdx >= state.order.length) {
       passiveEvents: passiveEvents,
       curDef: ch ? ch.curDef : null,
       curAtq: ch ? ch.curAtq : null,
-      quickAction: ch ? ch.quickAction : false 
+      satsui: (ch && ch.id === 'kuro') ? ch._satsui : undefined,
+      quickAction: ch ? ch.quickAction : false
     });
   // ── Timer do atacante (90s) ──
   if (room.actionTimer) clearTimeout(room.actionTimer);

@@ -1235,6 +1235,7 @@ if (pa.atacanteId === 'kuro' && pa.atacante.alive) {
   var dono = ws.playerIndex === 0 ? 'p1' : 'p2';
   var kuro = room.state[dono].chars.find(function(c) { return c.id === 'kuro'; });
   if (kuro) { kuro.suit = msg.suit; }
+        broadcast(room, 'kuro_suit', { suit: msg.suit });
       }
 
     else if (msg.type === 'gameloss') {

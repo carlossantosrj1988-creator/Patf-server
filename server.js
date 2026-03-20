@@ -1225,7 +1225,7 @@ atkAtq: atacante.curAtq
           }
           }
         }
-        broadcast(room, 'skip_anim', { charId: skOrder.charId, owner: skOrder.owner });
+        broadcast(room, 'skip_anim', { charId: skOrder.charId, owner: skOrder.owner, satsui: skCh.id === 'kuro' ? skCh._satsui : undefined });
         setTimeout(function() { advanceTurn(room); }, 1500);
       }
     }

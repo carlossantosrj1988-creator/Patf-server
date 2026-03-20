@@ -1229,6 +1229,13 @@ if (pa.atacanteId === 'kuro' && pa.atacante.alive) {
         setTimeout(function() { advanceTurn(room); }, 1500);
       }
     }
+      else if (msg.type === 'kuro_suit') {
+  var room = rooms[ws.roomId];
+  if (!room || !room.state) return;
+  var dono = ws.playerIndex === 0 ? 'p1' : 'p2';
+  var kuro = room.state[dono].chars.find(function(c) { return c.id === 'kuro'; });
+  if (kuro) { kuro.suit = msg.suit; }
+      }
 
     else if (msg.type === 'gameloss') {
       var room = rooms[ws.roomId];

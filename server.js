@@ -881,6 +881,11 @@ var defTotal = ignoreArmor ? 0 : (alvo.def + defCardNv);
           poderTotal = poderTotal + (atacante._agoraSerioPow || 0);
           atacante._agoraSerioPow = 0;
         }
+        // Kuro/Concentração Marcial: +1 carga ao encerrar rodada
+if (atacante.id === 'kuro' && atacante.alive) {
+  atacante._satsui = Math.min(10, (atacante._satsui || 0) + 1);
+  broadcast(room, 'skip_passive', { charId: 'kuro', type: 'kuro_satsui', satsui: atacante._satsui });
+}
         var dano = gameInit.resolveAttack(atacante.atq + pa.atkCardNv, poderTotal, defTotal);
 
         alvo.hp -= dano;

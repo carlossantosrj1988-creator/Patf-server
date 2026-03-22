@@ -856,7 +856,11 @@ var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAre
         // Trata poder multi-hit (ex: '2/2' ou '1/1/1')
 var poderTotal = pa.poder;
 if (typeof pa.poder === 'string' && pa.poder.indexOf('/') !== -1) {
-  poderTotal = pa.poder.split('/').reduce(function(acc, v) { return acc + Number(v); }, 0);
+  var hits = pa.poder.split('/');
+  var extraNvs = pa.extraCardNvs || [];
+  poderTotal = hits.reduce(function(acc, v, i) {
+    return acc + Number(v) + (i > 0 ? (extraNvs[i-1] || 0) : 0);
+  }, 0);
 }
         // Calcula dano com defesa
         var ignoreArmor = pa.atacante.skills.find(function(s) { return s.id === pa.skillId; });

@@ -631,7 +631,8 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
         atacante: atacante,
         alvo: alvo,
         attackerOwner: dono,
-        isQuickAction: !!(msg.isQuickAction)
+        isQuickAction: !!(msg.isQuickAction),
+        extraCardNvs: msg.extraCardNvs || []
       };
       
       // ── Fase 8h: Voss/Instinto Reflexivo — marca esquiva ao usar sen ──

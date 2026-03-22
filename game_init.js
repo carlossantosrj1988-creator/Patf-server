@@ -320,6 +320,11 @@ function applySkillEffects(skill, target, attacker) {
     applied.push('encantado');
   }
   
+  if (d.includes('imagem espelhada')) {
+  addStatus(target, {id:'mirror', icon:'🪞', label:'Im. Espelhada', turns:1});
+  applied.push('mirror');
+  }
+  
   if (d.includes('escudo')) {
     var shieldVal = (attacker ? attacker.atq : target.atq) + Number(skill.power || 0);
     addStatus(target, {id:'shield', icon:'🛡️', label:'Escudo('+shieldVal+')', turns:2, val:shieldVal});

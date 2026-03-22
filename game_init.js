@@ -57,6 +57,7 @@ function makeChar(data, owner) {
     _charge: 0,
     _linkAccum: 0,
     _satsui: 0,
+    _chamadoTurno: 0,
     skills: data.skills.map(function(sk) {
       return {
         id: sk.id,

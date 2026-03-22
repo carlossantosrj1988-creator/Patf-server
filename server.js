@@ -1251,6 +1251,20 @@ if (pa.atacanteId === 'kuro' && pa.atacante.alive) {
             var kaneRoll = Math.random();
             var kaneWeapon = kaneRoll < 0.25 ? 'pistola' : kaneRoll < 0.5 ? 'metralhadora' : kaneRoll < 0.75 ? 'shotgun' : 'extra';
             if (kaneWeapon === 'extra') gameInit.draw(room.state, skOrder.owner, 1);
+            if (kaneWeapon !== 'extra') {
+              skCh._weapon = kaneWeapon;
+              var KANE_WEAPONS = {
+                pistola:      { power: 4,         target: 'enemy',     desc: 'Critico Alto: 50% de chance de dano dobrado.' },
+                metralhadora: { power: '2/2/2/2', target: 'enemy',     desc: 'Ataque multiplo.' },
+                shotgun:      { power: 5,          target: 'all_enemy', desc: 'Ignora Armadura. Atinge todos os inimigos.' }
+              };
+              var wpnSk = skCh.skills.find(function(s) { return s.id === 'wpn'; });
+              if (wpnSk) {
+                wpnSk.power  = KANE_WEAPONS[kaneWeapon].power;
+                wpnSk.target = KANE_WEAPONS[kaneWeapon].target;
+                wpnSk.desc   = KANE_WEAPONS[kaneWeapon].desc;
+              }
+            }
             broadcast(room, 'skip_passive', { charId: skCh.id, type: 'kane_resgate', weapon: kaneWeapon });
           }
             // Elowen/Patrulheiro de Combate: +1 carta por patrulheiro aliado vivo

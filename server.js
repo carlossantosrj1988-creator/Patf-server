@@ -161,6 +161,51 @@ if (state.orderIdx >= state.order.length) {
       ch.curAtq = ch.atq + atqBonus;
       if (atqBonus > 0) passiveEvents.push({ type: 'espirito_combate', charId: charId, atqBonus: atqBonus });
     }
+  // Vance/Chamado da Tropa: dispara a cada 3 turnos
+if (ch && ch.id === 'vanc' && ch.alive) {
+  ch._chamadoTurno = (ch._chamadoTurno || 0) + 1;
+  if (ch._chamadoTurno % 3 === 0) {
+    var inimigos = state[owner === 'p1' ? 'p2' : 'p1'].chars.filter(function(c) { return c.alive; });
+    var aliados  = state[owner].chars.filter(function(c) { return c.alive && c.id !== 'vanc'; });
+    var r = Math.random();
+    var chamadoTipo, chamadoResultados = [];
+
+    if (r < 0.3333) {
+      // JENNET: Sangramento + Hemorragia instantânea
+      chamadoTipo = 'jennet';
+      inimigos.forEach(function(e) {
+        gameInit.addStatus(e, {id:'bleed', icon:'🩸', label:'Sangramento', turns:2, stacks:1, stackMax:3});
+        var bleedSt = e.statuses.find(function(s) { return s.id === 'bleed'; });
+        var stacks = bleedSt ? (bleedSt.stacks || 1) : 1;
+        var hDmg = 3 * stacks;
+        e.hp -= hDmg;
+        if (e.hp <= 0) { e.hp = 0; e.alive = false; }
+        chamadoResultados.push({ charId: e.id, hp: e.hp, alive: e.alive, dano: hDmg });
+      });
+    } else if (r < 0.6666) {
+      // HOOVER: 10 dano fixo Ignora Armadura em todos
+      chamadoTipo = 'hoover';
+      inimigos.forEach(function(e) {
+        e.hp -= 10;
+        if (e.hp <= 0) { e.hp = 0; e.alive = false; }
+        chamadoResultados.push({ charId: e.id, hp: e.hp, alive: e.alive, dano: 10 });
+      });
+    } else {
+      // GUINZU: Imagem Espelhada em todos os aliados
+      chamadoTipo = 'guinzu';
+      var targets = aliados.length ? aliados : [ch];
+      targets.forEach(function(a) {
+        gameInit.addStatus(a, {id:'mirror', icon:'🧸', label:'Imagem Espelhada', turns:1});
+        chamadoResultados.push({ charId: a.id });
+      });
+    }
+
+    passiveEvents.push({ type: 'chamado_tropa', chamadoTipo: chamadoTipo, resultados: chamadoResultados });
+
+    var winnerChamado = gameInit.checkWin(state);
+    if (winnerChamado) { endGame(room, winnerChamado, 'battle'); return; }
+  }
+}
 
     // Manda o turno
     broadcast(room, 'next_turn', {

@@ -611,6 +611,11 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
     dano: 0, hpAlvo: alvo.hp, morreu: false,
     statusApplied: efeitoPuro
   });
+  // Gorath/Agora é Sério: seta flag no state do servidor
+  if (skillId === 'ago' && atacante.id === 'gora') {
+    atacante._agoraSerio = true;
+    atacante._agoraSerioPow = 0;
+  }
   if (msg.isQuickAction) {
     broadcast(room, 'next_turn', { charId: atacanteId, owner: dono, isQuickAction: true });
   } else {

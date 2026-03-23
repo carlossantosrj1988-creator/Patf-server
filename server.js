@@ -836,10 +836,17 @@ var danoArea = gameInit.resolveAttack(paa.atacante.atq + paa.atkCardNv, poderAre
         });
 
         room.pendingAreaAction = null;
-        var winnerArea = gameInit.checkWin(room.state);
-        if (winnerArea) { endGame(room, winnerArea, 'battle'); return; }
-        advanceTurn(room);
-        return;
+var winnerArea = gameInit.checkWin(room.state);
+if (winnerArea) { endGame(room, winnerArea, 'battle'); return; }
+// ── Ação Rápida em área: mantém turno do atacante ──
+if (paa.atacante.skills.find(function(s) { return s.id === paa.skillId && s.acao === 'Rápida'; })) {
+  setTimeout(function() {
+    broadcast(room, 'next_turn', { charId: paa.atacanteId, owner: paa.attackerOwner, isQuickAction: true });
+  }, 4500);
+} else {
+  advanceTurn(room);
+}
+return;
       }
       var state = room.state;
       var pa = room.pendingAction;

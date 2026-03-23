@@ -674,6 +674,18 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
             room.pendingAction.alvoId = 'tyre';
           }
         }
+        // Gorath/Defender os Fracos: cobre qualquer aliado (não é ele mesmo, não é Rápida/Furtiva)
+if (!interceptorId && alvoAtualI.id !== 'gora' && acaoI !== 'Rápida') {
+  var goraI = state[defOwnerI].chars.find(function(c) {
+    return c.id === 'gora' && c.alive;
+  });
+  if (goraI) {
+    interceptorId = 'gora';
+    interceptType = 'defender_fracos';
+    room.pendingAction.alvo = goraI;
+    room.pendingAction.alvoId = 'gora';
+  }
+}
       }
 
       // Pede defesa ao defensor

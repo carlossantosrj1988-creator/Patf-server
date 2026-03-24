@@ -582,7 +582,7 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
       // Melt/Catastrófico — bloqueia painel de defesa
       var hasMelt = skill.desc.includes('Derreter Armadura') || skill.desc.includes('Catastrofico');
       var ignoreArmor = skill.desc.includes('Ignora Armadura') || skill.desc.includes('Catastrofico');
-      if (hasMelt && !msg.isArea) {
+      if (hasMelt) {
         var defMeltTotal = ignoreArmor ? 0 : alvo.def;
         var poderMelt = skill.power;
         if (typeof poderMelt === 'string' && poderMelt.indexOf('/') !== -1) {

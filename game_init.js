@@ -319,6 +319,12 @@ function applySkillEffects(skill, target, attacker) {
     addStatus(target, {id:'encantado', icon:'🎭', label:'Encantado', turns:1});
     applied.push('encantado');
   }
+
+  if (d.includes('fortalecido')) {
+    target.curAtq = Math.floor(target.curAtq * 1.5);
+    addStatus(target, {id:'fortalecido', icon:'⬆️', label:'Fortalecido', turns:2});
+    applied.push('fortalecido');
+  }
   
   if (d.includes('imagem espelhada')) {
   addStatus(target, {id:'mirror', icon:'🪞', label:'Im. Espelhada', turns:1});

@@ -610,7 +610,8 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
   broadcast(room, 'action_result', {
     atacante: atacanteId, skill: skillId, alvo: alvoId,
     dano: 0, hpAlvo: alvo.hp, morreu: false,
-    statusApplied: efeitoPuro
+    statusApplied: efeitoPuro,
+outfitNext: (skillId === 'rou' ? (msg.outfitNext || 'verde') : undefined)
   });
   // Gorath/Agora é Sério: seta flag no state do servidor
   if (skillId === 'ago' && atacante.id === 'gora') {

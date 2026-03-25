@@ -616,6 +616,20 @@ if (Number(skill.power) === 0 && (skill.type === 'Encanto' || skill.type === 'Me
     atacante._agoraSerio = true;
     atacante._agoraSerioPow = 0;
   }
+  // Tyre/Roupas Encantadas: atualiza outfit no state do servidor
+  if (skillId === 'rou' && atacante.id === 'tyre') {
+    var outfitNext = msg.outfitNext || 'verde';
+    ['outfit_verde','outfit_azul','outfit_vermelha'].forEach(function(id) {
+      atacante.statuses = atacante.statuses.filter(function(s) { return s.id !== id; });
+    });
+    atacante._outfit = outfitNext;
+    atacante.statuses.push({
+      id: 'outfit_'+outfitNext,
+      icon: outfitNext==='verde'?'🟢':outfitNext==='azul'?'🔵':'🔴',
+      label: outfitNext==='verde'?'Roupa Verde':outfitNext==='azul'?'Roupa Azul':'Roupa Vermelha',
+      turns: 999
+    });
+  }
   if (msg.isQuickAction) {
     broadcast(room, 'next_turn', { charId: atacanteId, owner: dono, isQuickAction: true });
   } else {

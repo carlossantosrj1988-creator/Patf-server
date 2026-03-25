@@ -164,6 +164,7 @@ if (state.orderIdx >= state.order.length) {
   // Vance/Chamado da Tropa: dispara a cada 3 turnos
 if (ch && ch.id === 'vanc' && ch.alive) {
   ch._chamadoTurno = (ch._chamadoTurno || 0) + 1;
+  passiveEvents.push({ type: 'chamado_contador', charId: charId, turno: ch._chamadoTurno });
   if (ch._chamadoTurno % 3 === 0) {
     var inimigos = state[owner === 'p1' ? 'p2' : 'p1'].chars.filter(function(c) { return c.alive; });
     var aliados  = state[owner].chars.filter(function(c) { return c.alive && c.id !== 'vanc'; });

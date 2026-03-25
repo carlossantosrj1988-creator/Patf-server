@@ -471,7 +471,7 @@ wss.on('connection', function(ws) {
       if (!atacante || !skill) {
   return send(ws, 'error', { message: 'Acao invalida' });
 }
-if (!alvo && !(msg.isArea && msg.targetIds && msg.targetIds.length > 0)) {
+if (!alvo && !(msg.isArea && msg.targetIds && msg.targetIds.length > 0) && skill.target !== 'all_ally') {
   return send(ws, 'error', { message: 'Acao invalida' });
 }
       if (atacante.cooldowns[skillId] > 0) {
